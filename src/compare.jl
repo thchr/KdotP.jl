@@ -13,7 +13,9 @@ function isweyl(lgir::LGIrrep{3}; timereversal::Bool=true)
         # **some** prefactor value; any (not-equal & not-too-simply-related) should be OK...
         x = .1*a^(1.25)
         for d in 1:3
-            V[:,d] .+= x.*H.cs[a][d][1:3]
+            for n in 1:3
+                V[n,d] += x * H.cs[a][d][n]
+            end
         end
     end
 

@@ -1,7 +1,14 @@
+# We parametrize the form of a k⋅p Hamiltonian according to:
+#     H(k) = ∑ₐ qₐ Hₐ(k)
+# where qₐ are free coefficients and Hₐ(k) are the "basis elements" of the allowable
+# k⋅p Hamiltonian elements. `KPHamiltonian` is a data structure for the fixed, k-dependent 
+# matrices Hₐ(k) with the structure:
+#      Hₐ(k) = ∑ₙ `H.hs[n]` ∑_d `H.cs[a][d][n]` ⋅ k[d]
+# where `H` is a `KPHamiltonian`.
 struct KPHamiltonian{D}
     lgir::LGIrrep{D}
     hs::Vector{Hermitian{ComplexF64, Matrix{ComplexF64}}}
-    cs::Vector{NTuple{D, Vector{Float64}}}
+    cs::Vector{NTuple{D, Vector{Float64}}} # TODO: change to Vector{Matrix{Float64}}?
 end
 irdim(H::KPHamiltonian) = irdim(H.lgir)
 
