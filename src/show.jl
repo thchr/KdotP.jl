@@ -30,6 +30,8 @@ end
 
 function print_matrix(io, A)
     pretty_table(io, A; 
+        # TODO: change `noheader` to `show_header = false` at some point, cf.
+        # https://github.com/ronisbr/PrettyTables.jl/commit/6b50308#commitcomment-83364891
         tf = tf_matrix, noheader = true, 
         formatters = format_matrix_element,
         highlighters = Highlighter((data,i,j) -> iszero(data[i,j]), foreground = :dark_gray)
