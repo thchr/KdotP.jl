@@ -95,7 +95,7 @@ KPHamiltonian{3} for 2D irrep (A₂) with 2 basis elements:
    │ ·  -1 │
    └       ┘
 ```
-However, under time-reversal A₁ and A₂ glue together to form the 4D irrep A₁A₂ with a (charge-2) Dirac Hamiltonian:
+Under time-reversal, however, the two 2D irreps A₁ and A₂ glue together to form the 4D irrep A₁A₂, whose **k** ⋅ **p** model is a (charge-2) Dirac Hamiltonian:
 ```jl
 julia> lgirs′ = realify(lgirs) # form the corepresentations, i.e. incorporate time-reversal
 julia> characters(lgirs′)
@@ -114,6 +114,7 @@ CharacterTable{3}: ⋕92 (P4₁2₁2) at A = [1/2, 1/2, 1/2]
 ───────────────┴──────
 
 julia> kdotp(lgirs′[1]; timereversal=true)
+KPHamiltonian{3} for 4D irrep (A₁A₂) with 4 basis elements:
 ₁₎ ┌            ┐        ┌               ┐        ┌            ┐        ┌               ┐
    │ ·  1  ·  · │        │  ·  -1i  ·  · │        │ ·  ·  ·  · │        │ ·  ·   ·    · │
    │ 1  ·  ·  · │(-k₁) + │ 1i    ·  ·  · │(+k₂) + │ ·  ·  ·  · │(+k₁) + │ ·  ·   ·    · │(+k₂)
