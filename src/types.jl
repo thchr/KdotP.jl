@@ -18,13 +18,11 @@ H(\\mathbf{k}) = \\sum_a q_a H_a(\\mathbf{k})
 where ``q_a`` are free (expansion) coefficients and ``H_a(\\mathbf{k})`` are the basis
 elements of the allowable **k**⋅**p** Hamiltonian terms.
 
-A `KPHamiltonian` contains the basis elements ``\{H_a(\\mathbf{k})\}``, allowing only
+A `KPHamiltonian` contains the basis elements ``\\{H_a(\\mathbf{k})\\}``, allowing only
 only linear-order terms in momentum. In particular, the data structure for the fixed,
 **k**-dependent matrices ``H_a(\\mathbrm{k})`` follows the form:
 
-```math
-H_a(\\mathbf{k}) = \\sum_n `H.hs[n]` \\sum_d `H.cs[a][d][n]`  k_d
-```
+``H_a(\\mathbf{k}) = \\sum_n`` `H.hs[n]` ``\\sum_d`` `H.cs[a][d][n]` ``k_d``
 
 with `H` denoting an instance of the type `KPHamiltonian`.
 """
