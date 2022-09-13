@@ -1,3 +1,44 @@
+"""
+    kdotp(lgir::LGIrrep, αβγ=nothing; timereversal::Bool=true) --> KPHamiltonian
+
+Return a basis for the allowed **k**⋅**p** Hamiltonians of a small irrep `lgir` up to linear
+order in momentum.
+
+## Arguments
+- `lgir`: a small irrep of a little group, provided as an instance of the type `LGIrrep`.
+  Tables of `LGIrrep`s are accessible from the `lgirreps` function of Crystalline.jl
+  package.
+- `αβγ`: if the little group associated with `lgir` has free parameters, i.e., if the
+  **k**-point is parametrized by free parameters (α, β, γ), these parameters may be set
+  via `αβγ = [α, β, γ]`. If `αβγ = nothing` (default), `lgir` is implicitly evaluated at
+  `αβγ = [0, 0, 0]`.
+- `timereversal` (keyword argument): if `true` (default), time-reversal invariance is
+  imposed on the **k**⋅**p** expansion. If `lgir` is a corepresentation (i.e., a "glued-up"
+  irrep), `timereversal` must be set to `true`; conversely, if `lgir` is a pseudoreal or
+  complex irrep that would otherwise pair up under time-reversal, `timereversal` must be
+  set to `false`.
+
+## Output
+- `H`: a [`KPHamiltonian`](@ref), containing the allowable terms of a **k**⋅**p** expansion
+  consistent with the transformation properties implied by `lgir`. Specifically, the allowed
+  Hamiltonian is expanded in the following manner:
+  
+  `H`
+  includes the basis elements ``H_a(\\mathbf{k})`` of the the allowed Hamiltonian
+  
+  ```math
+  H(\\mathbf{k}) = \\sum_a q_a H_a(\\mathbf{k})
+  ```
+
+  where ``q_a`` are free coefficients and ``H_a(\\mathbf{k})``are the basis elements of the
+  allowable (linear-order) **k**⋅**p** Hamiltonian terms.
+  To evaluate `H` for a specific set of expansion vectors at a particular **k**-point
+  (measured relative to the **k**-point in `lgir`, and assumed referred to the basis system
+  assumed in `lgir`; i.e., generally relative to a reciprocal lattice basis) and for a
+  particular set of expansion coefficients `qs` ``= [q_1, q_2, \\ldots, q_N]``, `H` can be
+  called as a functor using the syntax `H(k, qs)`.
+
+"""
 function kdotp(lgir::LGIrrep{D}, αβγ=nothing; timereversal::Bool=true) where D
     lg = group(lgir) # TODO: maybe e.g., skip identity?
     hs = Hermitian.(gellmann(Crystalline.irdim(lgir); skip_identity=false, norm_identity=true))
