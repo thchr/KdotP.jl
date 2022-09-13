@@ -130,7 +130,7 @@ KPHamiltonian{3} for 4D irrep (A₁A₂) with 4 basis elements:
    │ ·   ·  ·  · │        │                  ·                   ·                    ·  · │             │                 ·                  ·                  ·  -1.224744871391589 │
    └             ┘        └                                                                ┘             └                                                                             ┘
 ```
-By default, `kdotp` will set the keyword argument `timereversal=true`. If an irrep is complex or pseudoreal and not yet paired up with time-reversal partner (via `realify`), the keyword argument most be toggled to `false`.
+By default, `kdotp` will set the keyword argument `timereversal=true`. If an irrep is complex or pseudoreal and not yet paired up with a time-reversal partner (via `realify`), the keyword argument most be toggled to `false`.
 
 [docs-dev-img]:    https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]:    https://thchr.github.io/KdotP.jl/dev
