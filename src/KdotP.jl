@@ -4,7 +4,7 @@ module KdotP
 using Crystalline, GellMannMatrices, LinearAlgebra, PrettyTables, Unicode
 import Crystalline: irdim
 
-export kdotp, irdim
+export kdotp, KPHamiltonian, irdim
 
 # ---------------------------------------------------------------------------------------- #
 const ATOL_DEFAULT = 1e-10
