@@ -42,12 +42,10 @@ order in momentum.
 function kdotp(lgir::LGIrrep{D}, αβγ=nothing; timereversal::Bool=true) where D
     lg = group(lgir) # TODO: maybe e.g., skip identity?
     hs = Hermitian.(gellmann(Crystalline.irdim(lgir); skip_identity=false, norm_identity=true))
-    hs = hs
     N = length(hs)
     G = length(lg)
 
     Γs = lgir(αβγ)
-    kv = position(lgir)
     
     # assembling matrices
     # TODO: there is some minimal necessary set of operators to include here; possibly just
@@ -74,8 +72,7 @@ function kdotp(lgir::LGIrrep{D}, αβγ=nothing; timereversal::Bool=true) where 
     γ2 = zeros(Float64, N*D*G, N*D)
     for (g, op) in enumerate(lg)
         R = rotation(op) # apparently, there should _not_ be a transpose here¹⁾
-        # ¹⁾ g is imagined as acting on a parameter "k", rather than a "k-vector" per se.
-        # R = inv(R) # R'
+        # ¹⁾ g is imagined as acting on a parameter "k", rather than a "k-vector" per se
         for i in 1:D
             for j in 1:D
                 Rⱼᵢ = R[j,i]
@@ -118,7 +115,7 @@ function kdotp(lgir::LGIrrep{D}, αβγ=nothing; timereversal::Bool=true) where 
 
             γ2𝒯 = zeros(Float64, N*D, N*D)
             R₀ = rotation(g₀) # see ¹⁾ regarding transposition/no transposition
-            conj_prefs = [real(tr(conj(h)'*h)) for h in hs] # ⟨hₘ*|hₘ⟩_F = ±2
+            conj_prefs = [real(tr(h'*conj(h))) for h in hs] # ⟨hₘ|hₘ*⟩_F = ±2
             for i in 1:D
                 for j in 1:D
                     R₀ⱼᵢ = R₀[j,i]
@@ -190,10 +187,10 @@ function sparsify_columns(A; atol=ATOL_DEFAULT)
         indep_rows = Vector{eltype(A)}[]
         for row in eachrow(A)
             # if row is linearly independent with all existing ones, add it to the list
-            if isempty(nullspace(hcat(indep_rows..., row); atol=atol))
+            if isempty(nullspace(reduce(hcat, indep_rows; init=collect(reshape(row, (n, 1)))); atol=atol))
                 push!(indep_rows, row)
             end
         end
-        return A * inv(hcat(indep_rows...))'
+        return A * inv(reduce(hcat, indep_rows))'
     end
 end
