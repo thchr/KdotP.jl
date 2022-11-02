@@ -131,8 +131,8 @@ function kdotp(lgir::LGIrrep{D}, αβγ=nothing; timereversal::Bool=true) where 
     end
 
     # solving nullspace (c = [c_11, …, c_N1, c_12, …, cN2, …, c_1D, …, c_ND] = cₙᵈ)
-    _cs = nullspace(A - γ2, atol=ATOL_DEFAULT)
-    cs = sparsify_columns(_cs, atol=ATOL_DEFAULT)
+    _cs = nullspace(A - γ2; atol=ATOL_DEFAULT)
+    cs = poormans_sparsification(_cs; atol=ATOL_DEFAULT)
 
     # drop very small parts
     map!(x->abs(x) > ATOL_DEFAULT ? x : 0.0, cs, cs)
@@ -174,23 +174,16 @@ function kdotp(lgir::LGIrrep{D}, αβγ=nothing; timereversal::Bool=true) where 
     return KPHamiltonian{D}(lgir, hs, cs′)
 end
 
-# matrix sparsification (adapted from https://math.stackexchange.com/a/4227787)
-function sparsify_columns(A; atol=ATOL_DEFAULT)
-    n = size(A,2) 
-    if n ≤ 1
-        return A
-    else
-        # by assumption, the n columns of A are linearly independent
-        rank(A) ≠ n && error("columns of A must be independent")
-
-        # row rank == column rank: so, we can find n linearly independent rows in A
-        indep_rows = Vector{eltype(A)}[]
-        for row in eachrow(A)
-            # if row is linearly independent with all existing ones, add it to the list
-            if isempty(nullspace(reduce(hcat, indep_rows; init=collect(reshape(row, (n, 1)))); atol=atol))
-                push!(indep_rows, row)
-            end
-        end
-        return A * inv(reduce(hcat, indep_rows))'
+"""
+Poor man's "matrix sparsification" via the reduced row echelon form.
+"""
+function poormans_sparsification(A; rref_tol::Union{Nothing,Float64}=ATOL_DEFAULT)
+    # following appendix E of the Qsymm paper (https://arxiv.org/abs/1806.08363) [copied
+    # over from Neumann.jl]
+    if !isnothing(rref_tol)
+        # use a relatively low tolerance in `rref` to avoid explosions of errors
+        # NB: this optional tolerance argument of `rref!` is undocumented :(
+        return transpose(rref!(copy(transpose(A)), rref_tol))
     end
+    return transpose(rref(transpose(A)))
 end
