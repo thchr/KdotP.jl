@@ -6,12 +6,15 @@ using RowEchelon: rref, rref! # for `poormans_sparsification`
 
 import Crystalline: irdim
 
-export kdotp, KPHamiltonian, irdim
+export kdotp, MonomialHamiltonian, irdim, degree
 
 # ---------------------------------------------------------------------------------------- #
-const ATOL_DEFAULT = 1e-10
+const ATOL_DEFAULT = 1e-11
+const MAX_NONVANISHING_DEGREE_TRY = 10
 # ---------------------------------------------------------------------------------------- #
 
+include("monomials.jl")
+include("generator_indices.jl")
 include("types.jl")
 include("show.jl")
 include("constraints.jl")
@@ -19,6 +22,5 @@ include("compare.jl")
 include("timereversal.jl")
 
 # ---------------------------------------------------------------------------------------- #
-
 
 end # module

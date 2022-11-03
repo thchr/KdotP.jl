@@ -1,6 +1,6 @@
-function Base.summary(io::IO, H::KPHamiltonian{D}) where D
-    print(io, "KPHamiltonian{", D, "} for ", irdim(H.lgir), "D irrep (",
-              Crystalline.formatirreplabel(label(H.lgir)),
+function Base.summary(io::IO, H::MonomialHamiltonian{D}) where D
+    print(io, "MonomialHamiltonian{", D, "} of degree ", degree(H), " for ", 
+              irdim(H.lgir), "D irrep (", Crystalline.formatirreplabel(label(H.lgir)),
               ") with ", length(H.cs), " basis elements:")
 end
 
@@ -12,8 +12,13 @@ function format_matrix_element(v, i, j)
     else
         if real(v) == v
             return format_scalar(real(v))
-        elseif imag(v)*1im == v
-            return format_scalar(imag(v))*"i"
+        elseif iszero(real(v))
+            vi = imag(v)
+            if isone(abs(vi))
+                return signbit(vi) ? "-i" : "i"
+            else
+                return format_scalar(vi)*"i"
+            end
         else
             return format_scalar(v)
         end
@@ -38,42 +43,52 @@ function print_matrix(io, A)
     )
 end
 
-function Base.show(io::IO, ::MIME"text/plain", H::KPHamiltonian{D}) where D
+function Base.show(io::IO, ::MIME"text/plain", H::MonomialHamiltonian{D}) where D
     summary(io, H)
     println(io)
 
     N = length(H.hs)
     hs_rowstrs = split.(sprint.(print_matrix, H.hs; context=:color=>true), '\n')
     coefstrs = map(H.cs) do cₐ
-        map(1:length(H.hs)) do n
+        map(eachindex(H.hs)) do n
             io′ = IOBuffer()
-            write(io′, '(')
-            count = 0
-            for d in 1:D
-                v = cₐ[d][n]
+            nonzero_monomial_terms = 0
+            last_nonzero_term_was_negative = false
+            for i in eachindex(H.bᴹ)
+                v = cₐ[i][n]
                 if !iszero(v)
-                    print(io′, Crystalline.signaschar(v))
+                    last_nonzero_term_was_negative = signbit(v)
+                    signchar = last_nonzero_term_was_negative ? '-' : '+'
+                    if nonzero_monomial_terms > 0 || signchar == '-'
+                        print(io′, signchar)
+                    end
+
                     if !(abs(v) ≈ one(v))
                         print(io′, round(abs(v), digits=3))
                     end
-                    print(io′, "k", d == 1 ? "₁" : d == 2 ? "₂" : d == 3 ? "₃" : error("unexpected dimension $d"))
-                    count += 1
+                    print(io′, H.bᴹ[i])
+                    nonzero_monomial_terms += 1
                 end
             end
-            print(io′, ')')
-            String(take!(io′))
+            if nonzero_monomial_terms > 1 || last_nonzero_term_was_negative
+                print(io′, ')')
+                '(' * String(take!(io′))
+            else
+                String(take!(io′))
+            end
         end
     end
 
     max_tw = displaysize(io)[2]
     cntr_row = div(irdim(H)+2, 2, RoundUp)
-    for a in 1:length(H.cs)
+    for a in eachindex(H.cs)
         for row in 1:irdim(H)+2
-            printstyled(io, row == 1 ? Crystalline.subscriptify(string(a))*"₎ " : "   ", color=:light_black)
+            printstyled(io, row == 1 ? Crystalline.subscriptify(string(a))*"₎ " : "   ",
+                        color=:light_black)
             first_nonzero_term = true
             tw = 2
             for (n, h_rowstrs) in enumerate(hs_rowstrs)
-                coefstrs[a][n] == "()" && continue
+                isempty(coefstrs[a][n]) && continue
                 if !first_nonzero_term
                     print(io, row == cntr_row ? " + " : "   ")
                 end

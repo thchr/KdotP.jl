@@ -32,7 +32,7 @@ function find_unitary_irrep_transform(Xs, Ys, gs)
     end
     U .*= N/(G*rᵃᵇ)
 
-    return mapto_canonical_unitary!(U)
+    return mapto_canonical_unitary(U)
 end
 
 # find the unitary transformation that connects Xᵢ and Yᵢ by UXᵢU⁻¹ = Yᵢ for some set {i},
@@ -59,21 +59,21 @@ function find_unitary_transform(Xs, Ys)
         permutedims(reshape(sum(Uv, dims=2), N, N))
     else
         permutedims(reshape(Uv, N, N))
-    end
+    end :: Matrix{ComplexF64}
 
     check_transform = all(zip(Xs, Ys)) do (X,Y)
         U*X/U ≈ Y
     end
     check_transform || error("initial transform is invalid :(")
     
-    U = mapto_canonical_unitary(U)
+    _U = mapto_canonical_unitary(U) # NB: compiler issue forces us to have both `U` & `_U` bindings :(
     check_transform = all(zip(Xs, Ys)) do (X,Y)
-        U*X*U' ≈ Y
+        _U*X*_U' ≈ Y
     end
     check_transform || error("'unitarized' transform is invalid :(")
-    U'*U ≈ I || error("computed transformation is not unitary :(")
+    _U'*_U ≈ I || error("computed transformation is not unitary :(")
     
-    return U
+    return _U
 end
 
 # Eq. (4.5.51) of Bradley & Cracknell's book. Find a unitary operator U such that
@@ -94,11 +94,11 @@ function find_unitary_transform_bc(Xs, Ys, M=nothing)
 
     N = size(first(Xs), 1)
     hs = gellmann(N, skip_identity=true)
-    Ms = isnothing(M) ? [sum(hs), cis.(hs)...] : [M]
+    Ms = isnothing(M) ? prepend!(cis.(hs), sum(hs)) : [M]
     for M in Ms
-        U = sum(zip(Xs, Ys)) do (X,Y)
+        U = sum(zip(Xs, Ys); init=zero(M)) do (X,Y)
             X*M*inv(Y)
-        end ./ length(Xs)
+        end ./ length(Xs) :: Matrix{ComplexF64}
         rank(U) == N || continue
 
         check_transform = all(zip(Xs, Ys)) do (X,Y)

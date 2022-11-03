@@ -44,26 +44,19 @@ plot(map(i->PlotlyJS.scatter(x=kdists, y=getindex.(Es, i)), 1:irdim(H)))
 end
 
 # ---------------------------------------------------------------------------------------- #
-# Space group 139, P-point (2D irrep)
-# TODO: BROKEN FOR BOTH P and Γ
-lgirsd = lgirreps(139, Val(3))
-lgirs = lgirsd["P"][end] # P₅ (a 2D irrep)
-H = kdotp(lgirs) # BROKEN: only depends on k₃
 
-lgirs = lgirsd["Γ"][end] # Γ₅⁻ (a 2D irrep)
-H = kdotp(lgirs) # BROKEN: no elements
-
-# ---------------------------------------------------------------------------------------- #
-# Space group 225, W-point (2D irrep)
-# TODO: BROKEN FOR BOTH W and Γ
-lgirsd = lgirreps(225, Val(3))
-lgirs = lgirsd["W"][end] # P₅ (a 2D irrep)
-H = kdotp(lgirs) # BROKEN: only depends on k₁
-
-lgirs = lgirsd["Γ"][end] # Γ₅⁻ (a 2D irrep)
-H = kdotp(lgirs) # BROKEN: no elements
-
-# ---------------------------------------------------------------------------------------- #
-lgirs = lgirreps(92, Val(3))["A"]
-lgir = lgirs[1] # P₅ (a 2D irrep)
-H = kdotp(lgir) # BROKEN: only depends on k₁
+@testset "k-dot-p expansions" begin
+    for sgnum in 1:230
+        lgirsd = lgirreps(sgnum)
+        @show sgnum
+        for lgirs in values(lgirsd)
+            for timereversal in (false, true)
+                timereversal && (lgirs = realify(lgirs))
+                for lgir in lgirs
+                    Hs = kdotp(lgir; timereversal)
+                    @test !isempty(Hs)
+                end
+            end
+        end
+    end
+end
