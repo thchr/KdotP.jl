@@ -3,14 +3,13 @@ MonomialHamiltonian{D}
 
 ## Fields
 
-- `lgir :: LGIrrep{D}`
 - `hs   :: Vector{Hermitian{ComplexF64, Matrix{ComplexF64}}}`
 - `bᴹ   :: MonomialBasis{D}`
 - `cs   :: Vector{Vector{Vector{Float64}}}`
 
 ## Description
 
-A `MonomialHamiltonian` `Hᴹ` parametrices the form of a **k**⋅**p** Hamiltonian of monomial
+A `MonomialHamiltonian` `Hᴹ` parameterizes the form of a **k**⋅**p** Hamiltonian of monomial
 **k**-dependence of degree ``M =`` `degree(Hᴹ)`:
 
 ```math
@@ -31,13 +30,12 @@ basis element of the monomials of degree `M` (see also [`KdotP.Monomial`](@ref) 
 [`KdotP.MonomialBasis`](@ref)).
 """
 struct MonomialHamiltonian{D}
-    lgir :: LGIrrep{D}
     hs   :: Vector{Hermitian{ComplexF64, Matrix{ComplexF64}}}
     bᴹ   :: MonomialBasis{D}
     cs   :: Vector{Vector{Vector{Float64}}} # TODO: change to Vector{Matrix{Float64}}?
 end
-irdim(H::MonomialHamiltonian)  = irdim(H.lgir)
 degree(H::MonomialHamiltonian) = degree(H.bᴹ)
+irdim(H::MonomialHamiltonian) = size(first(H.hs), 1)
 
 """
     (H::MonomialHamiltonian{D})(k, a::Integer=1)
@@ -67,3 +65,14 @@ function (H::MonomialHamiltonian{D})(k, qs::AbstractVector{<:Real}) where D
         qs[a]*H(k, a)
     end
 end
+
+# ---------------------------------------------------------------------------------------- #
+struct HamiltonianExpansion{D} <: AbstractVector{MonomialHamiltonian{D}}
+    lgir   :: LGIrrep{D}
+    Hᴹs    :: Vector{MonomialHamiltonian{D}}
+    degree :: Int
+end
+Base.size(Hs::HamiltonianExpansion) = size(Hs.Hᴹs)
+Base.getindex(Hs::HamiltonianExpansion, i::Int) = getindex(Hs.Hᴹs, i)
+degree(Hs::HamiltonianExpansion) = Hs.degree
+irdim(Hs::HamiltonianExpansion) = irdim(Hs.lgir)

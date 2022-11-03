@@ -52,21 +52,21 @@ function kdotp(
             timereversal::Bool=true,
             degree::Union{Nothing, Integer}=nothing) where D
 
-    hs = Hermitian.(gellmann(irdim(lgir); skip_identity=false, norm_identity=true))
+    hs = Hermitian.(gellmann(irdim(lgir); skip_identity=false, normalize=true))
     Γs = lgir(αβγ)
     
-    hᴹs = Vector{MonomialHamiltonian{D}}()
+    Hᴹs = Vector{MonomialHamiltonian{D}}()
     degree′ = something(degree, MAX_NONVANISHING_DEGREE_TRY)
     for M in 1:degree′ # loop over monomial degrees
         cs′, bᴹ, hs′ = kdotp_at_fixed_degree(lgir, Γs, hs, M, timereversal)
-        hᴹ = MonomialHamiltonian{D}(lgir, hs′, bᴹ, cs′)
+        hᴹ = MonomialHamiltonian{D}(hs′, bᴹ, cs′)
         if !isempty(cs′)
-            push!(hᴹs, hᴹ)
-            isnothing(degree) && return hᴹs
+            push!(Hᴹs, hᴹ)
+            isnothing(degree) && return HamiltonianExpansion(lgir, Hᴹs, M)
         end
     end
-    isempty(hᴹs) && error("did not find any allowed terms up to monomial degree $degree′")
-    return hᴹs
+    isempty(Hᴹs) && error("did not find any allowed terms up to monomial degree $degree′")
+    return HamiltonianExpansion(lgir, Hᴹs, degree′)
 end
 
 function kdotp_at_fixed_degree(lgir::LGIrrep{D}, Γs, hs, M, timereversal) where D

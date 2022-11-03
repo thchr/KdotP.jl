@@ -1,7 +1,11 @@
 function Base.summary(io::IO, H::MonomialHamiltonian{D}) where D
-    print(io, "MonomialHamiltonian{", D, "} of degree ", degree(H), " for ", 
-              irdim(H.lgir), "D irrep (", Crystalline.formatirreplabel(label(H.lgir)),
-              ") with ", length(H.cs), " basis elements:")
+    print(io, "MonomialHamiltonian{", D, "} of degree ", degree(H), " with ", length(H.cs),
+              " basis elements:")
+end
+
+function Base.summary(io::IO, Hs::HamiltonianExpansion{D}) where D
+    print(io, "HamiltonianExpansion{", D, "} up to degree ", degree(Hs), " for ", 
+              irdim(Hs), "D irrep (", Crystalline.formatirreplabel(label(Hs.lgir)), "):")
 end
 
 # ---------------------------------------------------------------------------------------- #
@@ -82,9 +86,9 @@ function Base.show(io::IO, ::MIME"text/plain", H::MonomialHamiltonian{D}) where 
     max_tw = displaysize(io)[2]
     cntr_row = div(irdim(H)+2, 2, RoundUp)
     for a in eachindex(H.cs)
+        row_str = Crystalline.subscriptify(string(a))*"₎ "
         for row in 1:irdim(H)+2
-            printstyled(io, row == 1 ? Crystalline.subscriptify(string(a))*"₎ " : "   ",
-                        color=:light_black)
+            printstyled(io, row == 1 ? row_str : " "^length(row_str), color=:light_black)
             first_nonzero_term = true
             tw = 2
             for (n, h_rowstrs) in enumerate(hs_rowstrs)
@@ -109,6 +113,22 @@ function Base.show(io::IO, ::MIME"text/plain", H::MonomialHamiltonian{D}) where 
                     print(io, " "^textwidth(coefstrs[a][n]))
                 end
             end
+            println(io)
+        end
+    end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", Hs::HamiltonianExpansion{D}) where D
+    summary(io, Hs)
+    println(io)
+    ioc = IOContext(io, :displaysize=>displaysize(io) .- (0,3))
+    for Hᴹ in Hs.Hᴹs
+        s = sprint((io′, x)->show(io′, MIME"text/plain"(), x), Hᴹ; context=ioc)
+        N = count(==('\n'), s)
+        io′ = IOBuffer(s)
+        for (i, l) in enumerate(eachline(io′))
+            printstyled(io, i == 1 ? '┌' : i == N ? '└' : '│', ' ', color=:light_black)
+            print(io, l)
             println(io)
         end
     end
