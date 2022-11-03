@@ -39,19 +39,20 @@ CharacterTable{3}: ⋕24 (I2₁2₁2₁) at W = [1/2, 1/2, 1/2]
 ──────────────┴────
 
 julia> kdotp(lgirs[1])
-KPHamiltonian{3} for 2D irrep (W₁) with 3 basis elements:
-₁₎ ┌       ┐
-   │ 1   · │(+k₁)
-   │ ·  -1 │
-   └       ┘
-₂₎ ┌         ┐
-   │  ·  -1i │(+k₂)
-   │ 1i    · │
-   └         ┘
-₃₎ ┌      ┐
-   │ ·  1 │(+k₃)
-   │ 1  · │
-   └      ┘
+HamiltonianExpansion{3} up to degree 1 for 2D irrep (W₁):
+┌ MonomialHamiltonian{3} of degree 1 with 3 basis elements:
+│ ₁₎ ┌       ┐
+│    │ 1   · │x
+│    │ ·  -1 │
+│    └       ┘
+│ ₂₎ ┌       ┐
+│    │ ·  -i │y
+│    │ i   · │
+│    └       ┘
+│ ₃₎ ┌      ┐
+│    │ ·  1 │z
+│    │ 1  · │
+└    └      ┘
 ```
 The k<sub>i</sub> vectors are referred to the conventional basis choice for the corresponding space group.
 
@@ -76,26 +77,28 @@ CharacterTable{3}: ⋕92 (P4₁2₁2) at A = [1/2, 1/2, 1/2]
 In the absence of time-reversal, both A₁ and A₂ must be (charge-1) Weyl points:
 ```jl
 julia> kdotp(lgirs[1]; timereversal=false)
-KPHamiltonian{3} for 2D irrep (A₁) with 2 basis elements:
-₁₎ ┌      ┐        ┌         ┐
-   │ ·  1 │(-k₁) + │  ·  -1i │(+k₂)
-   │ 1  · │        │ 1i    · │
-   └      ┘        └         ┘
-₂₎ ┌       ┐
-   │ 1   · │(+k₃)
-   │ ·  -1 │
-   └       ┘
+HamiltonianExpansion{3} up to degree 1 for 2D irrep (A₁):
+┌ MonomialHamiltonian{3} of degree 1 with 2 basis elements:
+│ ₁₎ ┌      ┐    ┌       ┐
+│    │ ·  1 │x + │ ·  -i │(-y)
+│    │ 1  · │    │ i   · │
+│    └      ┘    └       ┘
+│ ₂₎ ┌       ┐
+│    │ 1   · │z
+│    │ ·  -1 │
+└    └       ┘
 
 julia> kdotp(lgirs[2]; timereversal=false)
-KPHamiltonian{3} for 2D irrep (A₂) with 2 basis elements:
-₁₎ ┌      ┐        ┌         ┐
-   │ ·  1 │(+k₁) + │  ·  -1i │(+k₂)
-   │ 1  · │        │ 1i    · │
-   └      ┘        └         ┘
-₂₎ ┌       ┐
-   │ 1   · │(+k₃)
-   │ ·  -1 │
-   └       ┘
+HamiltonianExpansion{3} up to degree 1 for 2D irrep (A₂):
+┌ MonomialHamiltonian{3} of degree 1 with 2 basis elements:
+│ ₁₎ ┌      ┐    ┌       ┐
+│    │ ·  1 │x + │ ·  -i │y
+│    │ 1  · │    │ i   · │
+│    └      ┘    └       ┘
+│ ₂₎ ┌       ┐
+│    │ 1   · │z
+│    │ ·  -1 │
+└    └       ┘
 ```
 Under time-reversal, however, the two 2D irreps A₁ and A₂ glue together to form the 4D irrep A₁A₂, whose **k** ⋅ **p** model is a (charge-2) Dirac Hamiltonian:
 ```jl
@@ -116,21 +119,50 @@ CharacterTable{3}: ⋕92 (P4₁2₁2) at A = [1/2, 1/2, 1/2]
 ───────────────┴──────
 
 julia> kdotp(lgirs′[1]; timereversal=true)
-KPHamiltonian{3} for 4D irrep (A₁A₂) with 4 basis elements:
-₁₎ ┌            ┐        ┌               ┐        ┌            ┐        ┌               ┐
-   │ ·  1  ·  · │        │  ·  -1i  ·  · │        │ ·  ·  ·  · │        │ ·  ·   ·    · │
-   │ 1  ·  ·  · │(-k₁) + │ 1i    ·  ·  · │(+k₂) + │ ·  ·  ·  · │(+k₁) + │ ·  ·   ·    · │(+k₂)
-   │ ·  ·  ·  · │        │  ·    ·  ·  · │        │ ·  ·  ·  1 │        │ ·  ·   ·  -1i │
-   │ ·  ·  ·  · │        │  ·    ·  ·  · │        │ ·  ·  1  · │        │ ·  ·  1i    · │
-   └            ┘        └               ┘        └            ┘        └               ┘
-₂₎ ┌             ┐        ┌                                                                ┐             ┌                                                                             ┐
-   │ 1   ·  ·  · │        │ 0.5773502691896257                   ·                    ·  · │             │ 0.408248290463863                  ·                  ·                   · │
-   │ ·  -1  ·  · │(+k₃) + │                  ·  0.5773502691896257                    ·  · │(+0.577k₃) + │                 ·  0.408248290463863                  ·                   · │(-0.816k₃)
-   │ ·   ·  ·  · │        │                  ·                   ·  -1.1547005383792515  · │             │                 ·                  ·  0.408248290463863                   · │
-   │ ·   ·  ·  · │        │                  ·                   ·                    ·  · │             │                 ·                  ·                  ·  -1.224744871391589 │
-   └             ┘        └                                                                ┘             └                                                                             ┘
+HamiltonianExpansion{3} up to degree 1 for 4D irrep (A₁A₂):
+┌ MonomialHamiltonian{3} of degree 1 with 2 basis elements:
+│ ₁₎ ┌            ┐       ┌             ┐    ┌            ┐    ┌             ┐
+│    │ ·  1  ·  · │       │ ·  -i  ·  · │    │ ·  ·  ·  · │    │ ·  ·  ·   · │
+│    │ 1  ·  ·  · │(-x) + │ i   ·  ·  · │y + │ ·  ·  ·  · │x + │ ·  ·  ·   · │y
+│    │ ·  ·  ·  · │       │ ·   ·  ·  · │    │ ·  ·  ·  1 │    │ ·  ·  ·  -i │
+│    │ ·  ·  ·  · │       │ ·   ·  ·  · │    │ ·  ·  1  · │    │ ·  ·  i   · │
+│    └            ┘       └             ┘    └            ┘    └             ┘
+│ ₂₎ ┌             ┐     ┌             ┐    ┌             ┐
+│    │ 1   ·  ·  · │     │ 1  ·   ·  · │    │ 1  ·  ·   · │
+│    │ ·  -1  ·  · │3z + │ ·  1   ·  · │z + │ ·  1  ·   · │(-z)
+│    │ ·   ·  ·  · │     │ ·  ·  -2  · │    │ ·  ·  1   · │
+│    │ ·   ·  ·  · │     │ ·  ·   ·  · │    │ ·  ·  ·  -3 │
+└    └             ┘     └             ┘    └             ┘
 ```
 By default, `kdotp` will set the keyword argument `timereversal=true`. If an irrep is complex or pseudoreal and not yet paired up with a time-reversal partner (via `realify`), the keyword argument most be toggled to `false`.
+
+By default, `kdotp` will return only the leading-degree allowed monomial terms in **k**. In the above examples, the leading order term had degree 1. To change the maximum considered degree, we can use the `degree` keyword argument. E.g., to include second-order terms in **k** in the expansion of the A₁ example from above:
+```jl
+julia> kdotp(lgirs[1]; timereversal=false, degree=2)
+HamiltonianExpansion{3} up to degree 2 for 2D irrep (A₁):
+┌ MonomialHamiltonian{3} of degree 1 with 2 basis elements:
+│ ₁₎ ┌      ┐    ┌       ┐
+│    │ ·  1 │x + │ ·  -i │(-y)
+│    │ 1  · │    │ i   · │
+│    └      ┘    └       ┘
+│ ₂₎ ┌       ┐
+│    │ 1   · │z
+│    │ ·  -1 │
+└    └       ┘
+┌ MonomialHamiltonian{3} of degree 2 with 3 basis elements:
+│ ₁₎ ┌      ┐
+│    │ 1  · │(x²+y²)
+│    │ ·  1 │
+│    └      ┘
+│ ₂₎ ┌      ┐     ┌       ┐
+│    │ ·  1 │yz + │ ·  -i │xz
+│    │ 1  · │     │ i   · │
+│    └      ┘     └       ┘
+│ ₃₎ ┌      ┐
+│    │ 1  · │z²
+│    │ ·  1 │
+└    └      ┘
+```
 
 [docs-dev-img]:    https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]:    https://thchr.github.io/KdotP.jl/dev
