@@ -168,7 +168,11 @@ function Base.show(io::IO, P::HomogenousPolynomial)
         end
         absc = abs(c)
         if !isone(absc) || all(iszero, x.ps)
-            print(io, absc)
+            if isinteger(absc)
+                print(io, round(Int, absc))
+            else
+                print(io, absc)
+            end
         end
         print(io, x)
     end

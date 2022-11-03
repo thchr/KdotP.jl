@@ -66,9 +66,14 @@ function Base.show(io::IO, ::MIME"text/plain", H::MonomialHamiltonian{D}) where 
                     if nonzero_monomial_terms > 0 || signchar == '-'
                         print(io′, signchar)
                     end
-
-                    if !(abs(v) ≈ one(v))
-                        print(io′, round(abs(v), digits=3))
+                    absv = abs(v)
+                    if !(absv ≈ one(v))
+                        rabsv = round(Int, absv)
+                        if rabsv ≈ absv
+                            print(io′, rabsv)
+                        else
+                            print(io′, round(abs(v), digits=3))
+                        end
                     end
                     print(io′, H.bᴹ[i])
                     nonzero_monomial_terms += 1

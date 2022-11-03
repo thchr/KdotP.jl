@@ -52,7 +52,7 @@ function kdotp(
             timereversal::Bool=true,
             degree::Union{Nothing, Integer}=nothing) where D
 
-    hs = Hermitian.(gellmann(irdim(lgir); skip_identity=false, normalize=true))
+    hs = Hermitian.(gellmann(irdim(lgir); skip_identity=false, normalize=false))
     Γs = lgir(αβγ)
     
     Hᴹs = Vector{MonomialHamiltonian{D}}()
@@ -114,12 +114,12 @@ function kdotp_at_fixed_degree(lgir::LGIrrep{D}, Γs, hs, M, timereversal) where
     # remove/prune coefficients/matrices that do not appear in the allowed expansions
     hs′ = prune_zero_terms!(cs′, hs) # modifies `cs′` and returns "slimmer copy" of `hs`
 
-    # normalize coefficients for pretty-printing (largest coefficient is 1 after)
+    # normalize coefficients for pretty-printing (smallest nonzero coefficient is 1 after)
     for cₐ in cs′
-        scale = zero(Float64)
+        scale = Inf
         for cₐᵈ in cₐ
-            v, idx = findmax(abs, cₐᵈ)
-            scale = abs(scale) < v ? cₐᵈ[idx] : scale
+            v, idx = findmin(x -> abs(x) < ATOL_DEFAULT ? Inf : abs(x), cₐᵈ)
+            scale = abs(scale) > v ? cₐᵈ[idx] : scale
         end
         for cₐᵈ in cₐ
             cₐᵈ ./= scale
@@ -156,6 +156,7 @@ function assemble_matrices_littlegroup(lgir, Γs, hs, bᴹ)
     end
 
     γ2 = zeros(Float64, N*J*G, N*J)
+    prefs = [real(tr(h'*h)) for h in hs] # ⟨hₘ|hₘ⟩_F (can be ≠2, cf. `normalize=false`)
     for (idxg, g) in enumerate(idxs)
         op = lg[g]
         ℜ = rotation_matrix_monomial(op, bᴹ)
@@ -164,7 +165,7 @@ function assemble_matrices_littlegroup(lgir, Γs, hs, bᴹ)
                 ℜⱼᵢ = ℜ[j,i]
                 iszero(ℜⱼᵢ) && continue
                 for m in 1:N # δₙₘ
-                    γ2[(idxg-1)*(N*J) + (i-1)*N + m, (j-1)*N + m] = 2ℜⱼᵢ
+                    γ2[(idxg-1)*(N*J) + (i-1)*N + m, (j-1)*N + m] = prefs[m]*ℜⱼᵢ
                 end
             end
         end
@@ -206,7 +207,7 @@ function assemble_matrices_timereversal(lgir::LGIrrep{D}, Γs, hs, bᴹ) where D
     ḡ₀ = SymOperation{D}(-one(Crystalline.SqSMatrix{D,Float64}), 
                           zero(Crystalline.SVector{D,Float64})   ) * g₀  # = -g₀
     ℜ₀ = rotation_matrix_monomial(ḡ₀, bᴹ)
-    conj_prefs = [real(tr(h'*conj(h))) for h in hs] # ⟨hₘ|hₘ*⟩_F = ±2
+    conj_prefs = [real(tr(h'*conj(h))) for h in hs] # ⟨hₘ|hₘ*⟩_F
     for i in 1:J
         for j in 1:J
             ℜ₀ⱼᵢ = ℜ₀[j,i]
