@@ -2,7 +2,7 @@
 
 [![API (development)][docs-dev-img]][docs-dev-url]
 
-Determine the allowable **k** ⋅ **p** models associated with a given small irrep of a little group, up to linear order in **k**.
+Determine the allowable **k** ⋅ **p** models associated with a given small irrep of a little group, up to arbitrary order in **k**.
 
 ## Installation
 
@@ -21,7 +21,7 @@ julia> Pkg.add("Crystalline")
 
 ## Examples
 
-The main functionality of KdotP.jl is exposed in the function `kdotp(::LGIrrep)`. To illustrate this, we calculate the allowed terms in the linear-order **k** ⋅ **p** expansion of a few different examples, using [Crystalline.jl](https://github.com/thchr/Crystalline.jl) to access the small irreps of little groups (of type `LGIrrep`).
+The main functionality of KdotP.jl is exposed in the function `kdotp(::LGIrrep)`. To illustrate this, we calculate the allowed terms in the leading-order **k** ⋅ **p** expansion of a few different examples, using [Crystalline.jl](https://github.com/thchr/Crystalline.jl) to access the small irreps of little groups (of type `LGIrrep`).
 
 As a first example, we may consider the W₁ irrep in space group 24. The associated **k** ⋅ **p** model is a general (charge-1) Weyl Hamiltonian:
 ```jl
