@@ -8,5 +8,5 @@ CurrentModule = KdotP
 
 ```@docs
 kdotp
-KPHamiltonian
+MonomialHamiltonian
 ```
