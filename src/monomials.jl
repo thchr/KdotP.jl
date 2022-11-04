@@ -86,6 +86,12 @@ function _int2superscript(i::Integer)
                   + 8256 #= integer character → subcript character =#)
 end
 
+"""
+MonomialBasis{D} <: AbstractVector{Monomial}
+
+A wrapper around `psv :: Monomial{D}`, which jointly form a basis for monomials of degree
+`M`.
+"""
 struct MonomialBasis{D} <: AbstractVector{Monomial}
     M   :: Int # degree of monomial basis terms
     psv :: Vector{Monomial{D}} # vector of powers
