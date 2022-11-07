@@ -94,11 +94,11 @@ function find_unitary_transform_bc(Xs, Ys, M=nothing)
 
     N = size(first(Xs), 1)
     hs = gellmann(N, skip_identity=true)
-    Ms = isnothing(M) ? prepend!(cis.(hs), sum(hs)) : [M]
+    Ms = isnothing(M) ? pushfirst!(cis.(hs), sum(hs)) : [M]
     for M in Ms
-        U = sum(zip(Xs, Ys); init=zero(M)) do (X,Y)
+        U = (sum(zip(Xs, Ys); init=zero(M)) do (X,Y)
             X*M*inv(Y)
-        end ./ length(Xs) :: Matrix{ComplexF64}
+        end ./ length(Xs)) :: Matrix{ComplexF64}
         rank(U) == N || continue
 
         check_transform = all(zip(Xs, Ys)) do (X,Y)
