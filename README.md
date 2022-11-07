@@ -54,7 +54,7 @@ HamiltonianExpansion{3} up to degree 1 for 2D irrep (W₁):
 │    │ 1  · │
 └    └      ┘
 ```
-The components of the **k**-vectors are indicated by `x`, `y`, and `z`, giving the components referred to the conventional basis choice for the corresponding space group (note that this choice is different from the Cartesian basis, except for cubic groups).
+The components of the **k**-vectors are indicated by `x`, `y`, and `z`, giving the **k**-vector components referred to the reciprocal lattice vectors associated with the conventional basis choice for the corresponding space group (note that this choice is different from the Cartesian basis, except for cubic groups; the conventional basis choices are listed in the International Tables of Crystallography, Volume A).
 
 In general, an arbitrary little group may support multiple irreps. For instance, the A point in space group 92 supports two irreps:
 ```jl
