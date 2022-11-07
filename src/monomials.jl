@@ -87,7 +87,7 @@ function _int2superscript(i::Integer)
 end
 
 """
-MonomialBasis{D} <: AbstractVector{Monomial}
+    MonomialBasis{D} <: AbstractVector{Monomial}
 
 A wrapper around `psv :: Monomial{D}`, which jointly form a basis for monomials of degree
 `M`.

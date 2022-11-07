@@ -54,9 +54,9 @@ HamiltonianExpansion{3} up to degree 1 for 2D irrep (W₁):
 │    │ 1  · │
 └    └      ┘
 ```
-The k<sub>i</sub> vectors are referred to the conventional basis choice for the corresponding space group.
+The components of the **k**-vectors are indicated by `x`, `y`, and `z`, giving the components referred to the conventional basis choice for the corresponding space group (note that this choice is different from the Cartesian basis, except for cubic groups).
 
-In general, an arbitrary little group may support multiple irreps. For instance, the A point in space group 92 supports to two irreps:
+In general, an arbitrary little group may support multiple irreps. For instance, the A point in space group 92 supports two irreps:
 ```jl
 julia> lgirs = lgirreps(92)["A"]
 julia> characters(lgirs)

@@ -1,5 +1,5 @@
 """
-MonomialHamiltonian{D}
+    MonomialHamiltonian{D}
 
 ## Fields
 
