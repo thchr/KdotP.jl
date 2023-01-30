@@ -47,7 +47,7 @@ function (H::MonomialHamiltonian{D})(k, a::Integer=1) where D
     length(k) == D || error(DimensionMismatch("incompatible dimensions of H and k"))
     sum(eachindex(H.hs)) do n
         c = sum(eachindex(H.bᴹ)) do j
-            (H.cs[a][j][n] * k[j])
+            H.cs[a][j][n] * H.bᴹ[j](k)
         end
         c*H.hs[n]
     end
