@@ -20,6 +20,7 @@ include("show.jl")
 include("constraints.jl")
 include("compare.jl")
 include("timereversal.jl")
+include("precompile.jl")
 
 # ---------------------------------------------------------------------------------------- #
 
