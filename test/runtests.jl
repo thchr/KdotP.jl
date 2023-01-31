@@ -8,7 +8,8 @@ using LinearAlgebra
 lgirsd = lgirreps(17, Val(2))
 lgirs = lgirsd["K"][end] # K₃ (a 2D irrep)
 
-H = kdotp(lgirs)
+Hs = kdotp(lgirs)
+H = Hs[1]
 H((.1,.2))
 
 using PlotlyJS
@@ -20,7 +21,7 @@ plot(map(i->PlotlyJS.surface(z=getindex.(Es, i)), 1:irdim(H)))
 # Space group 222, R-point (6-fold degeneracy)
 lgirsd = lgirreps(222, Val(3))
 lgirs = lgirsd["R"][end] # R₄ (a 6D irrep)
-H = kdotp(lgirs)
+H = kdotp(lgirs)[1]
 
 using PlotlyJS
 kxys = range(-.2, .2, 50)
@@ -38,7 +39,7 @@ plot(map(i->PlotlyJS.scatter(x=kdists, y=getindex.(Es, i)), 1:irdim(H)))
 @testset begin "functor"
     # 3D
     lgir = lgirreps(222,3)["R"][end]
-    H = kdotp(lgir)
+    H = kdotp(lgir)[1]
     k = [.1,.2,-.3]
     @test (.9H(k, 1) - .7H(k,2)) ≈ H(k, [.9,-.7])
 end
