@@ -1,10 +1,10 @@
-using SnoopPrecompile
+using PrecompileTools
 
-@precompile_setup begin
+@setup_workload begin
     lgir = realify(lgirreps(230)["P"])[1]
     io = IOBuffer()
-    @precompile_all_calls begin
-
+    
+    @compile_workload begin
         H = kdotp(lgir; timereversal=true, degree=3)
         show(io, MIME"text/plain"(), H)
 
