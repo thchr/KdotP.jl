@@ -1,20 +1,33 @@
-function isweyl(lgir::LGIrrep{3}; timereversal::Bool=true) 
-    irdim(lgir) ≠ 2 && return false # must be 2D irrep
-    
-    H = kdotp(lgir; timereversal)
-        
-    # must contain nonzero σ₁, σ₂, σ₃ terms, but no σ₀ terms
-    #(length(H.hs) ≥ 3 && I(2) ∉ H.hs) || return false 
-    (length(H.hs) ≥ 3 && [0 1; 1 0] ∈ H.hs && [0 -1im; 1im 0] ∈ H.hs && [1 0; 0 -1] ∈ H.hs) || return false 
+function isweyl(lgir::LGIrrep{D}; timereversal::Bool=true) where D
+    D == 3           || return false # can only have Weyls in 3D
+    irdim(lgir) == 2 || return false # must be 2D irrep; short-circuit before k⋅p calc if not
 
+    H = first(kdotp(lgir; timereversal)) # get lowest-order model
+
+    return isweyl(H)
+end
+
+function isweyl(H::MonomialHamiltonian{D}) where D
+    D == 3           || return false # can only have Weyls in 3D
+    irdim(H) == 2    || return false # must be 2-band model
+    degree(H) == 1   || return false # model is not linear in in k; cannot be Weyl
+    length(H.hs) ≥ 3 || return false # must at least contain σ₁, σ₂, σ₃ contributions
+    
     # find the "generalized" Weyl form of the k ⋅ p Hamiltonian, H = (Vk) ⋅ σ, with matrix V
+    σ₁ = Hermitian(ComplexF64[0 1; 1 0])
+    σ₂ = Hermitian(ComplexF64[0 -1im; 1im 0])
+    σ₃ = Hermitian(ComplexF64[1 0; 0 -1])
     V = zeros(3,3)
-    for a in eachindex(H.cs)
+    for σᵢ in (σ₁, σ₂, σ₃)
+        i′ = findfirst(==(σᵢ), H.hs)
+        if isnothing(i′)
+            return false # some σ₁, σ₂, σ₃ contribution is absent; cannot be a Weyl point'
+        end
         # **some** prefactor value; any (not-equal & not-too-simply-related) should be OK...
-        x = .1*a^(1.25)
-        for d in 1:3
-            for n in 1:3
-                V[n,d] += x * H.cs[a][d][n]
+        for a in eachindex(H.cs)
+            x = .1*a^(1.25)
+            for d in 1:3
+                V[i′,d] += x * H.cs[a][d][i′]
             end
         end
     end
