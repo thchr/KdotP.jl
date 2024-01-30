@@ -3,6 +3,7 @@ module KdotP
 
 using Crystalline, GellMannMatrices, LinearAlgebra, PrettyTables, Unicode
 using RowEchelon: rref, rref! # for `poormans_sparsification`
+using Optimization, OptimizationOptimJL # for `find_antiunitary_corep`
 
 import Crystalline: irdim
 

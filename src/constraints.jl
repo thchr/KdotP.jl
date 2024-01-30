@@ -38,13 +38,18 @@ degree in momentum.
   H^M(\\mathbf{k}) = \\sum_a q_a H_a^M(\\mathbf{k})
   ```
 
-  where ``q_a`` are free coefficients and ``H_a^M(\\mathbf{k})``are the basis elements of
+  where ``q_a`` are free coefficients and ``H_a^M(\\mathbf{k})`` are the basis elements of
   the degree ``M =`` `degree(Hᴹ)` monomial terms of the **k**⋅**p** Hamiltonian.
-  To evaluate `Hᴹ` for a specific set of expansion vectors at a particular **k**-point
-  (measured relative to the **k**-point in `lgir`, and assumed referred to the basis system
-  assumed in `lgir`; i.e., generally relative to a reciprocal lattice basis) and for a
-  particular set of expansion coefficients `qs` ``= [q_1, q_2, \\ldots, q_N]``, `Hᴹ` can be
-  called as a functor using the syntax `Hᴹ(k, qs)`.
+- The coordinates of the **k**⋅**p** model are displayed as `x`, `y`, & `z` for brevity; in
+  practice, they refer to the relative coordinates `k₁`, `k₂`, & `k₃`, respectively, for the
+  **k**-point **k** = ∑ᵢkᵢ**G**ᵢ, with **G**ᵢ denoting a reciprocal basis vector. This
+  reciprocal basis is implicitly specified through the choice of coordinates used in 
+  specifying the little group operations associated with `lgir`.
+- To evaluate `Hᴹ` for a specific set of expansion vectors at a particular **k**-point
+  (measured relative to the **k**-point in `lgir`, and, as described above, assumed referred
+  to the basis system assumed in `lgir`) and for a particular set of expansion coefficients
+  `qs` ``= [q_1, q_2, \\ldots, q_N]``, `Hᴹ` can be  called as a functor using the syntax 
+  `Hᴹ(k, qs)`.
 """
 function kdotp(
             lgir::LGIrrep{D},
@@ -58,7 +63,7 @@ function kdotp(
     Hᴹs = Vector{MonomialHamiltonian{D}}()
     degree′ = something(degree, MAX_NONVANISHING_DEGREE_TRY)
     for M in 1:degree′ # loop over monomial degrees
-        cs′, bᴹ, hs′ = kdotp_at_fixed_degree(lgir, Γs, hs, M, timereversal)
+        cs′, bᴹ, hs′ = kdotp_at_fixed_degree(lgir, Γs, hs, M, timereversal, αβγ)
         hᴹ = MonomialHamiltonian{D}(hs′, bᴹ, cs′)
         if !isempty(cs′)
             push!(Hᴹs, hᴹ)
@@ -69,7 +74,7 @@ function kdotp(
     return HamiltonianExpansion(lgir, Hᴹs, degree′)
 end
 
-function kdotp_at_fixed_degree(lgir::LGIrrep{D}, Γs, hs, M, timereversal) where D
+function kdotp_at_fixed_degree(lgir::LGIrrep{D}, Γs, hs, M, timereversal, αβγ) where D
     bᴹ = MonomialBasis{D}(M)
     N, J = length(hs), length(bᴹ)
 
@@ -84,22 +89,38 @@ function kdotp_at_fixed_degree(lgir::LGIrrep{D}, Γs, hs, M, timereversal) where
         # TODO: verify that `lgir` is not a complex irrep which would be modified by TR - if
         #       it is and wasn't correctly modified before being passed to `kdotp`, we will
         #       be unable to find an irrep for time-reversal
-        A𝒯_γ2𝒯 = assemble_matrices_timereversal(lgir, Γs, hs, bᴹ)
+        A𝒯_γ2𝒯 = assemble_matrices_timereversal(lgir, hs, bᴹ, αβγ)
         if !isnothing(A𝒯_γ2𝒯)
             A𝒯, γ2𝒯 = A𝒯_γ2𝒯
             A, γ2 = vcat(A, A𝒯), vcat(γ2, γ2𝒯) # TODO: do this without allocating twice?
         end
     elseif Crystalline.iscorep(lgir)
-        error("provided `lgir` is a corep (also known as a \"physically real\" irrep; \
+        @warn ("provided `lgir` is a corep (also known as a \"physically real\" irrep; \
                i.e., is modified by and assumes time-reversal symmetry), but the \
                `timereversal` keyword is set to `false`.")
     end
 
-    # remove colinear rows
-    M = transpose(reduce(hcat, unique(eachrow(A - γ2))))
-
+    # assemble overall matrix `A-γ2` while pruning colinear/near-zero rows
+    M′ = A - γ2
+    Mrows = Vector{eltype(M′)}[]
+    for m in eachrow(M′)
+        if norm(m) < ATOL_DEFAULT*10
+            continue # don't add near-zero rows; they are effectively spurious conditions
+        elseif any(x -> ≈(x, m; atol=ATOL_DEFAULT*10), Mrows) # `∈` with `≈` comparison
+            continue # don't add rows that are nearly identical to other rows
+            # TODO: generalize to a colinearity check (i.e., rows that differ by a constant)
+        else
+            push!(Mrows, m)
+        end
+    end
+    M = !isempty(Mrows) ? stack(Mrows; dims=1) : zeros(eltype(M′), (0, size(M′, 2)))
+    
     # solving nullspace (c = [c_11, …, c_N1, c_12, …, cN2, …, c_1J, …, c_NJ] = cₙᵈ)
-    _cs = nullspace(M, atol=ATOL_DEFAULT)
+    # NB: we use a rather high absolute tolerance here because the determination of the 
+    #     antiunitary corep when `timereversal = true` is not very numerically precise; with 
+    #     too low a tolerance, we may accidentally exclude physical solution vectors; in
+    #     principle, this should be fixed by improving `find_antiunitary_corep`'s precision
+    _cs = nullspace(M, atol=1e-8)
 
     # combine columns in `_cs` to get a representation with more zero terms, for ease of
     # interpretation
@@ -174,22 +195,34 @@ function assemble_matrices_littlegroup(lgir, Γs, hs, bᴹ)
     return A, γ2
 end
 
-function assemble_matrices_timereversal(lgir::LGIrrep{D}, Γs, hs, bᴹ) where D
+function assemble_matrices_timereversal(lgir::LGIrrep{D}, hs, bᴹ, αβγ=nothing) where D
     g₀ = kv_to_negative_kv_operation(lgir)
     isnothing(g₀) && return nothing
 
-    # Find a representation of 𝒯g₀ [Γ(𝒯g₀)K, with K denoting complex conjugation]
-    Γ𝒯g₀ = find_antiunitary_irrep(lgir, g₀)
+    # Find a corepresentation of 𝒯g₀ [Γ(𝒯g₀)K, with K denoting complex conjugation]
+    Γ𝒯g₀ = find_antiunitary_corep(lgir, g₀, αβγ)
+    
+    return assemble_matrices_timereversal(Γ𝒯g₀, g₀, hs, bᴹ)
+end
+function assemble_matrices_timereversal(Γ𝒯g₀, g₀::SymOperation{D}, hs, bᴹ) where D
     Γ𝒯g₀⁻¹ = inv(Γ𝒯g₀) # TODO: could just be Γ𝒯g₀†, right?
-
-    # Next, formulate the constraint Γ(𝒯g₀)H(k)Γ(𝒯g₀)⁻¹ = H*(−g₀k) as the matrix equation
-    # `A𝒯*c = γ2𝒯*c`
-    # TODO: maybe flip conjugation to LHS instead of RHS, as in our notes?
+    # Next, formulate the constraint Γ(𝒯g₀)H*(k)Γ(𝒯g₀)⁻¹ = H(−g₀k) as the matrix equation
+    # `A𝒯*c = γ2𝒯*c`. Note that Eq. (S59) of Bradlyn's (2016) Science paper also has
+    # something "off" here, since it writes that Γ(𝒯g₀)H*(k)Γ(𝒯g₀)⁻¹ = H(−g₀k) should hold,
+    # but that is not true - rather, it is what I write above, which can be proven in the
+    # following manner:
+    #       For every g∈G, including antiunitary elements B, we must have
+    #           g H(k) g⁻¹ = H(gk)
+    #       For g = 𝒯g₀ = 𝒯{R|τ}, the corep acts as Γ(𝒯g₀)𝒯, and hence:
+    #           Γ(𝒯g₀)𝒯[H(k)Γ(𝒯g₀⁻¹)𝒯] = Γ(𝒯g₀)H*(k)Γ*(𝒯g₀⁻¹) = H(𝒯g₀k) = H(-g₀k)
+    #       Now, note that Γ(𝒯g₀⁻¹) = Γ*(𝒯g₀)⁻¹ cf. the Γ(B)Γ(B⁻¹) = Γ(BB⁻¹) = 1 algebra of
+    #       antiunitary operations, so that Γ*(𝒯g₀⁻¹) = Γ(𝒯g₀)⁻¹. Then, finally:
+    #           Γ(𝒯g₀)H*(k)Γ(𝒯g₀)⁻¹ = H(-g₀k)
     N, J = length(hs), length(bᴹ)
     A𝒯 = zeros(Float64, N*J, N*J)
-    hₘΓhₙΓ⁻¹ = Matrix{ComplexF64}(undef, irdim(lgir), irdim(lgir))
+    hₘΓhₙΓ⁻¹ = Matrix{ComplexF64}(undef, size(Γ𝒯g₀))
     for n in 1:N
-        ΓhₙΓ⁻¹ = Γ𝒯g₀*hs[n]*Γ𝒯g₀⁻¹
+        ΓhₙΓ⁻¹ = Γ𝒯g₀*conj(hs[n])*Γ𝒯g₀⁻¹
         for m in 1:N
             tr_hₘΓhₙΓ⁻¹ = tr(mul!(hₘΓhₙΓ⁻¹, hs[m]', ΓhₙΓ⁻¹))
             if abs(imag(tr_hₘΓhₙΓ⁻¹)) > ATOL_DEFAULT
@@ -207,7 +240,7 @@ function assemble_matrices_timereversal(lgir::LGIrrep{D}, Γs, hs, bᴹ) where D
     ḡ₀ = SymOperation{D}(-one(Crystalline.SqSMatrix{D,Float64}), 
                           zero(Crystalline.SVector{D,Float64})   ) * g₀  # = -g₀
     ℜ₀ = rotation_matrix_monomial(ḡ₀, bᴹ)
-    conj_prefs = [real(tr(h'*conj(h))) for h in hs] # ⟨hₘ|hₘ*⟩_F
+    conj_prefs = [real(tr(h'*h)) for h in hs] # ⟨hₘ|hₘ⟩_F
     for i in 1:J
         for j in 1:J
             ℜ₀ⱼᵢ = ℜ₀[j,i]
