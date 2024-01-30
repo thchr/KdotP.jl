@@ -15,7 +15,8 @@ makedocs(
         canonical = "https://thchr.github.io/KdotP.jl"
     ),
     pages = [
-        "API" => "index.md"
+        "API" => "index.md",
+        "Internal API" => "internal-api.md",
     ]
 )
 
