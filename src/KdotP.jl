@@ -7,7 +7,7 @@ using Optimization, OptimizationOptimJL # for `find_antiunitary_corep`
 
 import Crystalline: irdim
 
-export kdotp, MonomialHamiltonian, irdim, degree
+export kdotp, MonomialHamiltonian, Monomial, MonomialBasis, irdim, degree
 
 # ---------------------------------------------------------------------------------------- #
 const ATOL_DEFAULT = 1e-11

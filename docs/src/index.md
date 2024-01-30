@@ -9,6 +9,6 @@ CurrentModule = KdotP
 ```@docs
 kdotp
 MonomialHamiltonian
-KdotP.Monomial
-KdotP.MonomialBasis
+MonomialBasis
+Monomial
 ```
