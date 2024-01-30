@@ -131,16 +131,23 @@ function MonomialBasis{D}(M::Integer) where D
 end
 
 function _generate_nloops_expr(D)
-    quote
-        j = 1
-        Base.Cartesian.@nloops #=
-        * # of loops =# $(D-1) #=
-        * itersym    =# i #=
-        * rangeexpr  =# d -> (d==$(D-1) ? M : M-j_{d+1}):-1:0 #=
-        * preexpr    =# d -> (j_d = (d==$(D-1) ? i_d  : j_{d+1} + i_d)) #=
-        * loop body  =# begin
-            psv[j] = Monomial{$D}(reverse(Base.Cartesian.@ntuple $(D-1) i)..., M-j_1)
-            j += 1
+    if D ≠ 1
+        return quote
+            j = 1
+            Base.Cartesian.@nloops #=
+            * # of loops =# $(D-1) #=
+            * itersym    =# i #=
+            * rangeexpr  =# d -> (d==$(D-1) ? M : M-j_{d+1}):-1:0 #=
+            * preexpr    =# d -> (j_d = (d==$(D-1) ? i_d  : j_{d+1} + i_d)) #=
+            * loop body  =# begin
+                psv[j] = Monomial{$D}(reverse(Base.Cartesian.@ntuple $(D-1) i)..., M-j_1)
+                j += 1
+            end
+        end
+    else
+        # no loops for `D=1`, so the `@nloops` approach stumbles; handle manually
+        return quote
+            psv[1] = Monomial{1}(M)
         end
     end
 end
