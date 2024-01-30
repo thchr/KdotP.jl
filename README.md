@@ -1,6 +1,6 @@
 # KdotP.jl
 
-[![API (development)][docs-dev-img]][docs-dev-url]
+[![API (development)][docs-dev-img]][docs-dev-url] [![Coverage][coverage-img]][coverage-url]
 
 Determine the allowable **k** ⋅ **p** models associated with a given small irrep of a little group, up to arbitrary order in **k**.
 
@@ -166,3 +166,5 @@ HamiltonianExpansion{3} up to degree 2 for 2D irrep (A₁):
 
 [docs-dev-img]:    https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]:    https://thchr.github.io/KdotP.jl/dev
+[coverage-img]:    https://codecov.io/gh/thchr/KdotP.jl/branch/master/graph/badge.svg
+[coverage-url]:    https://codecov.io/gh/thchr/KdotP.jl
