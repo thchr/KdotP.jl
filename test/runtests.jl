@@ -24,7 +24,7 @@ end
 
 # ---------------------------------------------------------------------------------------- #
 
-@testset begin "k⋅p models behave as functors"
+@testset "k⋅p models behave as functors" begin
     # 3D
     lgir = lgirreps(222,3)["R"][end]
     H = kdotp(lgir)[1]
