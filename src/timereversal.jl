@@ -40,7 +40,7 @@ end
 function find_antiunitary_corep(lgir, g₀, αβγ=nothing)
     lg = group(lgir)
     Zs = lgir(αβγ)                               # D(gᵢ)
-    Xs = conj.(Zs)                               # D*(gᵢ)
+    Xs = [conj(Z) for Z in Zs]                   # D*(gᵢ)
     Ys = trs_transformed_irreps(Zs, lg, g₀, αβγ) # D(g₀gᵢg₀⁻¹)
     
     if !all(((X,Y),) -> tr(X) ≈ tr(Y), zip(Xs, Ys)) 
@@ -92,7 +92,7 @@ function find_antiunitary_corep(lgir, g₀, αβγ=nothing)
         #     to ~1e-8, which seems too big for our use (and leads to errors on elements
         #     of the extracted matrix of around ~1e-11 - 1e-10); by default, Optim already
         #     sets `x_tol = f_tol = 0`.
-        sum_basis_terms(sol.u, U_basis)
+        sum_basis_terms(sol.u :: Vector{Float64}, U_basis)
     elseif Nᵁ == 1
         # simple case: only one basis vector; `U` is determined sufficiently uniquely
         U_basis[1]
