@@ -5,8 +5,15 @@
     Monomial{D}(ps::NTuple{D, Int})
     Monomial(p1, p2, ..., pD)
 
-Define the `D`-dimensional monomial `xᴹ = x₁^ps[1] … xᵢ^ps[i] … x_D^ps[D]` with non-negative
-integer powers `ps`.
+Define the `D`-dimensional monomial 
+
+```math
+x^M = x_1^p_1 … x_i^{p_i} … x_D^{p_D} = \\prod_i^D x_i^{p_i}
+```
+
+with non-negative integer powers ``p_i =`` `ps[i]`. 
+The degree of the monomial `M` is ``\\prod_i p_i`` (see [`degree(::Monomial)`](@ref)).
+
 A `Monomial` `xᴹ` behaves as a functor and can be evaluated at a given position
 `xs = [x₁, …, xᵢ, …, x_D]` via `xᴹ(xs)`.
 
@@ -36,6 +43,17 @@ Monomial(ps::NTuple{D, Integer}) where D = Monomial{D}(ps)
 Monomial(ps::Vararg{Integer, D}) where D = Monomial{D}(ps)
 Monomial{D}(ps::Vararg{Integer, D}) where D = Monomial{D}(ps)
 
+"""
+    degree(H::Monomial{D}) --> Int
+
+Return the degree ``M`` of a monomial 
+
+```math
+x^M = x_1^p_1 … x_i^{p_i} … x_D^{p_D} = \\prod_i^D x_i^{p_i}
+```
+
+where ``M = ∏_i^D p_i``.
+"""
 degree(xᴹ::Monomial) = sum(xᴹ.ps)
 
 # --- evaluate Monomial ---
@@ -89,8 +107,11 @@ end
 """
     MonomialBasis{D} <: AbstractVector{Monomial}
 
-A wrapper around `psv :: Monomial{D}`, which jointly form a basis for monomials of degree
-`M`.
+    - `M :: Int` (degree of monomial basis elements)
+    - `psv :: Vector{Monomomial{D}` (basis elements)
+
+A wrapper around a vector of `Monomial{D}`, the elements of which constitute a monomial
+basis for polynomials of degree `M` in `D` dimensions.
 """
 struct MonomialBasis{D} <: AbstractVector{Monomial}
     M   :: Int # degree of monomial basis terms
@@ -99,6 +120,13 @@ end
 Base.size(bᴹ::MonomialBasis) = size(bᴹ.psv)
 Base.getindex(bᴹ::MonomialBasis, i::Int) = bᴹ.psv[i]
 
+"""
+    degree(H::MonomialBasis) --> Int
+
+Return the degree ``M`` of a monomial basis ``\\{x^M\\}``.
+
+See also [`degree(::Monomial)`](@ref).
+"""
 degree(bᴹ::MonomialBasis) = bᴹ.M
 
 function MonomialBasis{D}(M::Integer) where D

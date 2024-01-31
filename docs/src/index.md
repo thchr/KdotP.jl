@@ -8,7 +8,8 @@ CurrentModule = KdotP
 
 ```@docs
 kdotp
-MonomialHamiltonian
-MonomialBasis
 Monomial
+MonomialBasis
+MonomialHamiltonian
+degree
 ```

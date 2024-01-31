@@ -34,8 +34,17 @@ struct MonomialHamiltonian{D}
     bᴹ   :: MonomialBasis{D}
     cs   :: Vector{Vector{Vector{Float64}}} # TODO: change to Vector{Matrix{Float64}}?
 end
-degree(H::MonomialHamiltonian) = degree(H.bᴹ)
 irdim(H::MonomialHamiltonian) = size(first(H.hs), 1)
+
+"""
+    degree(H::MonomialHamiltonian) --> Int
+
+Return the degree of the `H`, i.e., the order or overall exponent of the **k**-polynomial
+in `H`.
+
+See also [`degree(::MonomialBasis)`](@ref).
+"""
+degree(H::MonomialHamiltonian) = degree(H.bᴹ)
 
 """
     (H::MonomialHamiltonian{D})(k, a::Integer=1)
@@ -74,5 +83,13 @@ struct HamiltonianExpansion{D} <: AbstractVector{MonomialHamiltonian{D}}
 end
 Base.size(Hs::HamiltonianExpansion) = size(Hs.Hᴹs)
 Base.getindex(Hs::HamiltonianExpansion, i::Int) = getindex(Hs.Hᴹs, i)
-degree(Hs::HamiltonianExpansion) = Hs.degree
 irdim(Hs::HamiltonianExpansion) = irdim(Hs.lgir)
+
+"""
+    degree(Hs::HamiltonianExpansion) --> Int
+
+Return the maximum degree of the `MonomialHamiltonian`s contained in `Hs`.
+
+See also [`degree(::MonomialHamiltonian)`](@ref).
+"""
+degree(Hs::HamiltonianExpansion) = Hs.degree
