@@ -2,12 +2,16 @@ module KdotP
 # ---------------------------------------------------------------------------------------- #
 
 using Crystalline, GellMannMatrices, LinearAlgebra, PrettyTables, Unicode
-using RowEchelon: rref, rref! # for `poormans_sparsification`
+using RowEchelon: rref, rref!           # for `poormans_sparsification`
 using Optimization, OptimizationOptimJL # for `find_antiunitary_corep`
 
-import Crystalline: irdim
+export kdotp, MonomialHamiltonian, Monomial, MonomialBasis, degree
 
-export kdotp, MonomialHamiltonian, Monomial, MonomialBasis, irdim, degree
+import Crystalline: irdim
+export irdim                       # rexport
+
+import Crystalline.Bravais: cartesianize, cartesianize!
+export cartesianize, cartesianize! # reexport
 
 # ---------------------------------------------------------------------------------------- #
 const ATOL_DEFAULT = 1e-11
@@ -21,6 +25,7 @@ include("show.jl")
 include("constraints.jl")
 include("compare.jl")
 include("timereversal.jl")
+include("transform.jl")
 include("precompile.jl")
 
 # ---------------------------------------------------------------------------------------- #

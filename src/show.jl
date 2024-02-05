@@ -51,7 +51,6 @@ function Base.show(io::IO, ::MIME"text/plain", H::MonomialHamiltonian{D}) where 
     println(io)
 
     N = length(H.hs)
-    hs_rowstrs = split.(sprint.(print_matrix, H.hs; context=:color=>true), '\n')
     coefstrs = map(H.cs) do cₐ
         map(eachindex(H.hs)) do n
             io′ = IOBuffer()
@@ -59,7 +58,7 @@ function Base.show(io::IO, ::MIME"text/plain", H::MonomialHamiltonian{D}) where 
             last_nonzero_term_was_negative = false
             for i in eachindex(H.bᴹ)
                 v = cₐ[i][n]
-                if !iszero(v)
+                if abs(v) > ATOL_DEFAULT # do not print near-zero terms
                     last_nonzero_term_was_negative = signbit(v)
                     signchar = last_nonzero_term_was_negative ? '-' : '+'
                     if nonzero_monomial_terms > 0 || signchar == '-'
@@ -89,6 +88,7 @@ function Base.show(io::IO, ::MIME"text/plain", H::MonomialHamiltonian{D}) where 
 
     max_tw = displaysize(io)[2]
     cntr_row = div(irdim(H)+2, 2, RoundUp)
+    hs_rowstrs = split.(sprint.(print_matrix, H.hs; context=io), '\n')
     for a in eachindex(H.cs)
         row_str = Crystalline.subscriptify(string(a))*"₎ "
         for row in 1:irdim(H)+2

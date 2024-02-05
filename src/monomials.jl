@@ -8,7 +8,7 @@
 Define the `D`-dimensional monomial 
 
 ```math
-x^M = x_1^p_1 … x_i^{p_i} … x_D^{p_D} = \\prod_i^D x_i^{p_i}
+x^M = x_1^p_1 \\cdots x_i^{p_i} \\cdots x_D^{p_D} = \\prod_i^D x_i^{p_i}
 ```
 
 with non-negative integer powers ``p_i =`` `ps[i]`. 
@@ -46,13 +46,13 @@ Monomial{D}(ps::Vararg{Integer, D}) where D = Monomial{D}(ps)
 """
     degree(H::Monomial{D}) --> Int
 
-Return the degree ``M`` of a monomial 
+For a monomial 
 
 ```math
-x^M = x_1^p_1 … x_i^{p_i} … x_D^{p_D} = \\prod_i^D x_i^{p_i}
+x^M = x_1^p_1 \\cdots x_i^{p_i} \\cdots x_D^{p_D} = \\prod_i^D x_i^{p_i}
 ```
 
-where ``M = ∏_i^D p_i``.
+return its degree ``M = \\prod_i^D p_i``.
 """
 degree(xᴹ::Monomial) = sum(xᴹ.ps)
 
@@ -253,11 +253,19 @@ Base.one(::Type{HomogenousPolynomial{D,T}}) where {D,T} = HomogenousPolynomial{D
 Base.one(::PT) where {PT<:HomogenousPolynomial} = one(PT)
 Base.:^(P::HomogenousPolynomial, n) = prod(Iterators.repeated(P, n)) # NB: very inefficient :(
 
+# for a transformation `op`={R|τ}, compute matrix ℜ s.t.
+#     op ∘ xᵢᴹ = R ∘ xᵢᴹ = ∑ⱼ ℜᵢⱼxⱼᴹ
+# for every monomial basis element xᵢᴹ in the basis bᴹ = {x₁ᴹ, …, x_Jᴹ}
 function rotation_matrix_monomial(op::SymOperation{D}, bᴹ::MonomialBasis{D}) where D
-    # compute matrix ℜ s.t.
-    #     op * xᵢᴹ = ∑ⱼ ℜᵢⱼxⱼᴹ
-    # for every monomial basis element xᵢᴹ in the basis bᴹ = {x₁ᴹ, …, x_Jᴹ}
     R = rotation(op)
+    # TODO: In principle, I thought `R` ought to be acting as Rᵀk since we assume xᵢᴹ are
+    # / NB: k-vectors - and so act via the transpose of `R` - but if we flip from `R` to
+    #       `transpose(R)` below, then things don't work out as intended (e.g., for the 
+    #       Dirac point of plane group 17 at K); so, for now, we just use the untransposed
+    #       `R` simply because it seems to give the consistent answers... Sad :(
+    return rotation_matrix_monomial(R, bᴹ)
+end
+function rotation_matrix_monomial(R::AbstractMatrix{<:Real}, bᴹ::MonomialBasis{D}) where D
     b¹ = MonomialBasis{D}(1) # x, y, z
     ℜ = Matrix{Float64}(undef, length(bᴹ), length(bᴹ))
     P₀ = one(HomogenousPolynomial{D,Float64})
