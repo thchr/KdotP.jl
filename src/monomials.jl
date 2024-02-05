@@ -65,7 +65,7 @@ function (xᴹ::Monomial{D})(xs::Union{AbstractVector, NTuple{D}}) where D
     end
     v
 end
-(xᴹ::Monomial{D})(xs::Vararg{T, D} where T) where D = xᴹ(xs)
+(xᴹ::Monomial{D})(xs::Vararg{T, D}) where {D,T} = xᴹ(xs)
 
 # --- show Monomial ---
 function Base.show(io::IO, xᴹ::Monomial{D}) where D
