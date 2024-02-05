@@ -13,9 +13,8 @@ julia> import Pkg
 julia> Pkg.add(url="https://github.com/thchr/KdotP.jl")
 ```
 
-To get access to relevant irrep data, KdotP.jl is assumed to be used in combination with [Crystalline.jl](https://github.com/thchr/Crystalline.jl), which can be added via:
+To get access to relevant irrep data, KdotP.jl is intended to be used in combination with [Crystalline.jl](https://github.com/thchr/Crystalline.jl), which can be added via:
 ```jl
-julia> import Pkg
 julia> Pkg.add("Crystalline")
 ```
 
