@@ -52,7 +52,6 @@ function cartesianize(
 
     return cartesianize!(H′, R)
 end
-end
 
 for f in (:cartesianize!, :cartesianize)
     @eval KdotP function $f(
