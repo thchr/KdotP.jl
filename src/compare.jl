@@ -21,7 +21,7 @@ function isweyl(H::MonomialHamiltonian{D}) where D
     for σᵢ in (σ₁, σ₂, σ₃)
         i′ = findfirst(==(σᵢ), H.hs)
         if isnothing(i′)
-            return false # some σ₁, σ₂, σ₃ contribution is absent; cannot be a Weyl point'
+            return false # some σ₁, σ₂, σ₃ contribution is absent; cannot be a Weyl point
         end
         # **some** prefactor value; any (not-equal & not-too-simply-related) should be OK...
         for a in eachindex(H.cs)
