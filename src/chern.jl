@@ -20,10 +20,11 @@ argument `cartesian`.
 
 ## Method
 The Chern number of the lowest band is proportional to the total solid angle under
-the manifold $\\hat{\\mathbf{d}}(S^2)$ with $S^2$ denoting the 2-sphere, which in turn is
-equal to the degree of the map $\\hat{\\mathbf{d}}$, i.e.,
-$\\mathrm{deg}(\\hat{\\mathbf{d}})$, times 4π. 
-Put differently, the Chern number of the lowest band is C₋ = deg(̂𝐝)/4π.
+the manifold ``\\hat{\\mathbf{d}}(S^2)`` with ``S^2`` denoting the 2-sphere, which in turn
+is equal to the degree of the map ``\\hat{\\mathbf{d}}``, i.e.,
+``\\mathrm{deg}(\\hat{\\mathbf{d}})``, times 4π. 
+Put differently, the Chern number of the lowest band is
+``C_- = \\mathrm{deg}(\\hat{\\mathbf{d}})/4\\pi``.
 
 This is computed numerically by discretizing the 2-sphere on an equidistant grid in polar
 and azimuthal angles, and constructing a simple triangular mesh from the cell-mesh.
