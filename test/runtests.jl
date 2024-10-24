@@ -54,6 +54,7 @@ H = Hs[1]
 include("antiunitary_corep.jl")
 include("weyl.jl")
 include("dirac.jl")
+include("chern.jl")
 
 # ---------------------------------------------------------------------------------------- #
 
