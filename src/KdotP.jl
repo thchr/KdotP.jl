@@ -5,7 +5,7 @@ using Crystalline, GellMannMatrices, LinearAlgebra, PrettyTables, Unicode
 using RowEchelon: rref, rref!           # for `poormans_sparsification`
 using Optimization, OptimizationOptimJL # for `find_antiunitary_corep`
 
-export kdotp, MonomialHamiltonian, Monomial, MonomialBasis, degree
+export kdotp, MonomialHamiltonian, Monomial, MonomialBasis, degree, chern_2x2_hamiltonian
 
 import Crystalline: irdim
 export irdim                       # rexport
@@ -26,6 +26,7 @@ include("constraints.jl")
 include("compare.jl")
 include("timereversal.jl")
 include("transform.jl")
+include("chern.jl")
 include("precompile.jl")
 
 # ---------------------------------------------------------------------------------------- #

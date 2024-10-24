@@ -1,7 +1,7 @@
 name = "KdotP"
 uuid = "c8045c5a-940e-4537-a0b9-cab4a5eb5ca1"
 authors = ["Thomas Christensen <tchr@mit.edu> and contributors"]
-version = "0.2.5"
+version = "0.2.6"
 
 [deps]
 Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
