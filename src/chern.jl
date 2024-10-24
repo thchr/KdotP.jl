@@ -10,7 +10,7 @@ using LinearAlgebra: dot, cross, normalize
 
 Evaluate the topological charge, or Chern number, of the lowest band of a 2×2 Hamiltonian
 H(𝐤) = 𝛔 ⋅ 𝐝(𝐤), expanded on the Pauli matrices 𝛔 = [σ₁, σ₂, σ₃] and a coefficient vector
-𝐝(𝐤) which completely determines Hamiltonian and is given as an input function `d`.
+𝐝(𝐤) which completely determines the Hamiltonian and is given as an input function `d`.
 This function must return a 3D vector `[d₁, d₂, d₃]` for every input 𝐤-vector.
 
 The topological charge is evaluated over a 𝐤-space sphere surrounding the origin 𝐤 = 𝟎.
@@ -19,11 +19,14 @@ The coefficient vector 𝐝(𝐤) can be provided either in cartesian coordinate
 argument `cartesian`.
 
 ## Method
-The Chern number of the lowest band is evaluated by computing the total solid angle under
-the manifold ̂𝐝(S²) with S² denoting the 2-sphere divided by 4π, i.e., the degree of the map
-̂𝐝. The Chern number of the lowest band is then C₋ = deg(̂𝐝)/4π.
-This is achieved numerically by discretization the 2-sphere on an equidistant grid in the
-polar and azimuthal angles, and constructing a triangular mesh from each associated cell.
+The Chern number of the lowest band is proportional to the total solid angle under
+the manifold $\\hat{\\mathbf{d}}(S^2)$ with $S^2$ denoting the 2-sphere, which in turn is
+equal to the degree of the map $\\hat{\\mathbf{d}}$, i.e.,
+$\\mathrm{deg}(\\hat{\\mathbf{d}})$, times 4π. 
+Put differently, the Chern number of the lowest band is C₋ = deg(̂𝐝)/4π.
+
+This is computed numerically by discretizing the 2-sphere on an equidistant grid in polar
+and azimuthal angles, and constructing a simple triangular mesh from the cell-mesh.
 
 The Chern number of the highest band is the negated value of the first band's Chern number.
 
