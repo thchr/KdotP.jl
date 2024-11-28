@@ -135,3 +135,38 @@ function _to_spherical_coordinates(d_cartesian::Function)
         return d_cartesian(kx, ky, kz)
     end
 end
+
+# ---------------------------------------------------------------------------------------- #
+
+"""
+    chern_2x2_hamiltonian(
+        Hs::HamiltonianExpansion{3},
+        qss::AbstractVector{<:AbstractVector{<:Real}};
+        kws...)                                         --> Float64
+
+Evaluate the topological charge, or Chern number, of the lowest band of a 2×2 Hamiltonian
+specified via a Hamiltonian expansion in `Hs`, evaluated at an set of expansion coefficients
+supplied in `qss`, with the coefficient in `qss[i][j]` applying to `i`th
+`MonomialHamiltonian` in `Hs` and its corresponding `j`th free term.
+
+See also [`chern_2x2_hamiltonian(::Function)`](@ref), which also lists associated keyword
+arguments `kws`.
+"""
+function chern_2x2_hamiltonian(
+    Hs::HamiltonianExpansion{3},
+    qss::AbstractVector{<:AbstractVector{<:Real}} = [rand(length(H.cs)) for H in Hs];
+    kws...
+    )
+    length(Hs) == length(qss) || error("Hs and qs have dissimilar lengths")
+    irdim(Hs) == 2 || error("can only compute Chern number for 2-band Hamiltonians")
+    H(k) = sum(((H, qs),)->H(k, qs), zip(Hs,qss); init=zeros(ComplexF64, 2, 2))
+
+    function d(k₁, k₂, k₃)
+        Hₖ = H([k₁, k₂, k₃])
+        d₁ = real( Hₖ[1,2] + Hₖ[2,1])/2 # tr(Hk * σ₁) / 2
+        d₂ = imag(-Hₖ[1,2] + Hₖ[2,1])/2 # tr(Hk * σ₂) / 2
+        d₃ = real( Hₖ[1,1] - Hₖ[2,2])/2 # tr(Hk * σ₃) / 2
+        return [d₁, d₂, d₃]
+    end
+    return chern_2x2_hamiltonian(d; cartesian=true, kws...)
+end
