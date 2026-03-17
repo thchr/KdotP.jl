@@ -24,8 +24,7 @@ Gs′ = ReciprocalBasis{2}(Gm′[:,1], Gm′[:,2])
 H′ = cartesianize(H, Gs′)
 @test repr(MIME"text/plain"(), H′; context = :color=>false) == raw"""
 MonomialHamiltonian{2} of degree 1 with 1 basis elements:
-₁₎ ┌      ┐    ┌       ┐ 
-   │ ·  1 │x + │ ·  -i │y
-   │ 1  · │    │ i   · │ 
-   └      ┘    └       ┘ 
-"""
+₁₎ ┌      ┐     ┌       ┐  
+   │ ·  1 │k₁ + │ ·  -i │k₂
+   │ 1  · │     │ i   · │  
+   └      ┘     └       ┘  """
