@@ -71,12 +71,8 @@ end
 function Base.show(io::IO, xᴹ::Monomial{D}) where D
     for (i, p) in enumerate(xᴹ.ps)
         p == 0 && continue
-        if i > 4
-            print(io, 'x')
-            print_int_as_subscript(io, i)
-        else
-            print(io, i == 1 ? 'x' : i == 2 ? 'y' : i == 3 ? 'z' : 'w')
-        end
+        print(io, 'k')
+        print_int_as_subscript(io, i)
         p == 1 && continue
         print_int_as_superscript(io, p)
     end
