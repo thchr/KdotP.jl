@@ -39,10 +39,11 @@ end
 
 function print_matrix(io, A)
     pretty_table(io, A; 
-        tf = tf_matrix,
-        show_header = false, 
-        formatters = format_matrix_element,
-        highlighters = Highlighter((data,i,j) -> iszero(data[i,j]), foreground = :dark_gray)
+        table_format = PrettyTables.text_table_format__matrix,
+        show_column_labels = false,
+        formatters = [format_matrix_element],
+        highlighters = [TextHighlighter((data,i,j) -> iszero(data[i,j]), foreground = :dark_gray)],
+        new_line_at_end = false,
     )
 end
 
@@ -87,11 +88,12 @@ function Base.show(io::IO, ::MIME"text/plain", H::MonomialHamiltonian{D}) where 
     end
 
     max_tw = displaysize(io)[2]
-    cntr_row = div(irdim(H)+2, 2, RoundUp)
+    N_rows = irdim(H) + 2
+    cntr_row = div(N_rows, 2, RoundUp)
     hs_rowstrs = split.(sprint.(print_matrix, H.hs; context=io), '\n')
     for a in eachindex(H.cs)
         row_str = Crystalline.subscriptify(string(a))*"₎ "
-        for row in 1:irdim(H)+2
+        for row in 1:N_rows
             printstyled(io, row == 1 ? row_str : " "^length(row_str), color=:light_black)
             first_nonzero_term = true
             tw = 2
@@ -117,7 +119,7 @@ function Base.show(io::IO, ::MIME"text/plain", H::MonomialHamiltonian{D}) where 
                     print(io, " "^textwidth(coefstrs[a][n]))
                 end
             end
-            println(io)
+            row != N_rows && println(io)
         end
     end
 end
@@ -126,14 +128,14 @@ function Base.show(io::IO, ::MIME"text/plain", Hs::HamiltonianExpansion{D}) wher
     summary(io, Hs)
     println(io)
     ioc = IOContext(io, :displaysize=>displaysize(io) .- (0,3))
-    for Hᴹ in Hs.Hᴹs
+    for (n, Hᴹ) in enumerate(Hs.Hᴹs)
         s = sprint((io′, x)->show(io′, MIME"text/plain"(), x), Hᴹ; context=ioc)
         N = count(==('\n'), s)
         io′ = IOBuffer(s)
         for (i, l) in enumerate(eachline(io′))
             printstyled(io, i == 1 ? '┌' : i == N ? '└' : '│', ' ', color=:light_black)
             print(io, l)
-            println(io)
+            (n == length(Hs.Hᴹs) && i == N) || println(io)
         end
     end
 end
