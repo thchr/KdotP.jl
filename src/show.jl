@@ -119,7 +119,7 @@ function Base.show(io::IO, ::MIME"text/plain", H::MonomialHamiltonian{D}) where 
                     print(io, " "^textwidth(coefstrs[a][n]))
                 end
             end
-            row != N_rows && println(io)
+            (a == length(H.cs) && row == N_rows) || println(io)
         end
     end
 end
@@ -130,7 +130,7 @@ function Base.show(io::IO, ::MIME"text/plain", Hs::HamiltonianExpansion{D}) wher
     ioc = IOContext(io, :displaysize=>displaysize(io) .- (0,3))
     for (n, Hᴹ) in enumerate(Hs.Hᴹs)
         s = sprint((io′, x)->show(io′, MIME"text/plain"(), x), Hᴹ; context=ioc)
-        N = count(==('\n'), s)
+        N = count(==('\n'), s)+1
         io′ = IOBuffer(s)
         for (i, l) in enumerate(eachline(io′))
             printstyled(io, i == 1 ? '┌' : i == N ? '└' : '│', ' ', color=:light_black)
