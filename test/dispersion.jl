@@ -1,6 +1,6 @@
-#using Crystalline, KdotP
+using Crystalline, KdotP
 
-sgnum, klab, index = 213, "B", 1 #4, "G", 1#80, "P", 2#218, "R", 3
+sgnum, klab, index = 222, "R", 1 #4, "G", 1#80, "P", 2#218, "R", 3
 lgirsd = lgirreps(sgnum, Val(3))
 lgirs = realify(lgirsd[klab])
 lgir = lgirs[end]
@@ -22,10 +22,6 @@ end
 Es = [ lift(val -> getindex.(val,i),tmp) for i in 1:irdim(H)]
 surface!.(ax, Ref(kxys), Ref(kxys), Es, colormap=:balance, colorrange=(-1,1).*.75, alpha=.5, transparency=true)
 contourplots = contour3d!.(ax, Ref(kxys), Ref(kxys), Es, levels=range(-.75,.75,25), linewidth=1.5, transparency=true, colormap=:balance)
-
-for elem in contourplots # fix until https://github.com/JuliaPlots/Makie.jl/pull/1727
-    elem.plots[1].transparency=true
-end
 
 f
 
