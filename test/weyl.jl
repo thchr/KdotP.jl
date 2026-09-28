@@ -49,6 +49,9 @@ using Test, KdotP, Crystalline
         )
 
     # check that we identify exactly the same "high-symmetry" irreps as supporting Weyl 
-    # models as in [1] - no more, and no fewer.
-    @test weyl_irs_d == weyl_irs_d_encyclopedia
+    # models as in [1] - no more, and no fewer. NB: `weyl_irs_d` is built by iterating
+    # over `values(::Dict)`, whose order is unspecified, so we compare irrep labels as
+    # sets rather than in sequence.
+    sort_labels(d) = Dict(sgnum => sort(irlabs) for (sgnum, irlabs) in d)
+    @test sort_labels(weyl_irs_d) == sort_labels(weyl_irs_d_encyclopedia)
 end # @testset
