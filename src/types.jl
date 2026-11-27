@@ -76,14 +76,17 @@ function (H::MonomialHamiltonian{D})(k, qs::AbstractVector{<:Real}) where D
 end
 
 # ---------------------------------------------------------------------------------------- #
-struct HamiltonianExpansion{D} <: AbstractVector{MonomialHamiltonian{D}}
-    lgir   :: LGIrrep{D}
+struct HamiltonianExpansion{D, IR <: AbstractLGIrrep{D}} <: AbstractVector{MonomialHamiltonian{D}}
+    lgir   :: IR
     Hᴹs    :: Vector{MonomialHamiltonian{D}}
     degree :: Int
 end
 Base.size(Hs::HamiltonianExpansion) = size(Hs.Hᴹs)
 Base.getindex(Hs::HamiltonianExpansion, i::Int) = getindex(Hs.Hᴹs, i)
 irdim(Hs::HamiltonianExpansion) = irdim(Hs.lgir)
+function Crystalline.isspinful(::Type{<:HamiltonianExpansion{D, IR}}) where {D, IR}
+    return isspinful(IR)
+end
 
 """
     degree(Hs::HamiltonianExpansion) --> Int

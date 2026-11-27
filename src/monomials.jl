@@ -252,7 +252,7 @@ Base.:^(P::HomogenousPolynomial, n) = prod(Iterators.repeated(P, n)) # NB: very 
 # for a transformation `op`={R|τ}, compute matrix ℜ s.t.
 #     op ∘ xᵢᴹ = R ∘ xᵢᴹ = ∑ⱼ ℜᵢⱼxⱼᴹ
 # for every monomial basis element xᵢᴹ in the basis bᴹ = {x₁ᴹ, …, x_Jᴹ}
-function rotation_matrix_monomial(op::SymOperation{D}, bᴹ::MonomialBasis{D}) where D
+function rotation_matrix_monomial(op::AbstractOperation{D}, bᴹ::MonomialBasis{D}) where D
     R = rotation(op)
     # TODO: In principle, I thought `R` ought to be acting as Rᵀk since we assume xᵢᴹ are
     # / NB: k-vectors - and so act via the transpose of `R` - but if we flip from `R` to

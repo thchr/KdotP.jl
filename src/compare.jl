@@ -1,4 +1,4 @@
-function isweyl(lgir::LGIrrep{D}; timereversal::Bool=true) where D
+function isweyl(lgir::AbstractLGIrrep{D}; timereversal::Bool=true) where D
     D == 3           || return false # can only have Weyls in 3D
     irdim(lgir) == 2 || return false # must be 2D irrep; short-circuit before k⋅p calc if not
 
@@ -37,7 +37,7 @@ function isweyl(H::MonomialHamiltonian{D}) where D
     return rank(V) == 3 
 end
 
-function is_spinone_weyl(lgir::LGIrrep{3}; timereversal::Bool=true)
+function is_spinone_weyl(lgir::AbstractLGIrrep{3}; timereversal::Bool=true)
     # TODO
     # check whether H is unitarily equivalent to a matrix of the form
     #   H = k ⋅ S

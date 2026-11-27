@@ -37,7 +37,7 @@ function find_antiunitary_corep(lgir::LGIrrep; αβγ=nothing)
     end
 end
 
-function find_antiunitary_corep(lgir, g₀, αβγ=nothing)
+function find_antiunitary_corep(lgir::LGIrrep, g₀, αβγ=nothing)
     lg = group(lgir)
     Zs = lgir(αβγ)                               # D(gᵢ)
     Xs = [conj(Z) for Z in Zs]                   # D*(gᵢ)
@@ -197,9 +197,10 @@ function _check_transform_and_ensure_unitarity(U, Xs, Ys, D_g₀g₀)
     return _U
 end
 
-# find an operation in the space group of `lgir` that maps `kv` to `-kv`
-function kv_to_negative_kv_operation(lgir::LGIrrep{D}) where D
-    sg = spacegroup(num(lgir), Val(D))
+# find an operation in the space group of `lgir` that maps `kv` to `-kv` (for a spinful
+# `lgir`, an operation of the double space group)
+function kv_to_negative_kv_operation(lgir::AbstractLGIrrep{D}) where D
+    sg = spacegroup(num(lgir), Val(D); spinful=Val(isspinful(lgir)))
     cntr = centering(sg)
     kv = position(lgir)
     g₀_idx = findfirst(g -> isapprox(g*kv, -kv, cntr), sg)
