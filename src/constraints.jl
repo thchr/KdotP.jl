@@ -117,11 +117,7 @@ function kdotp_at_fixed_degree(lgir::AbstractLGIrrep{D}, Γs, hs, M, timereversa
     M = !isempty(Mrows) ? stack(Mrows; dims=1) : zeros(eltype(M′), (0, size(M′, 2)))
     
     # solving nullspace (c = [c_11, …, c_N1, c_12, …, cN2, …, c_1J, …, c_NJ] = cₙᵈ)
-    # NB: we use a rather high absolute tolerance here because the determination of the 
-    #     antiunitary corep when `timereversal = true` is not very numerically precise; with 
-    #     too low a tolerance, we may accidentally exclude physical solution vectors; in
-    #     principle, this should be fixed by improving `find_antiunitary_corep`'s precision
-    _cs = nullspace(M, atol=1e-8)
+    _cs = nullspace(M, atol=ATOL_DEFAULT)
 
     # combine columns in `_cs` to get a representation with more zero terms, for ease of
     # interpretation
@@ -197,11 +193,11 @@ function assemble_matrices_littlegroup(lgir, Γs, hs, bᴹ)
 end
 
 function assemble_matrices_timereversal(lgir::AbstractLGIrrep{D}, hs, bᴹ, αβγ=nothing) where D
-    g₀ = kv_to_negative_kv_operation(lgir)
+    g₀ = minus_k_operation(lgir)
     isnothing(g₀) && return nothing
 
     # Find a corepresentation of 𝒯g₀ [Γ(𝒯g₀)K, with K denoting complex conjugation]
-    Γ𝒯g₀ = find_antiunitary_corep(lgir, g₀, αβγ)
+    Γ𝒯g₀ = timereversal_unitary(lgir, g₀, αβγ)
     
     return assemble_matrices_timereversal(Γ𝒯g₀, g₀, hs, bᴹ)
 end
