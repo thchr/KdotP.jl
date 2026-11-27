@@ -127,12 +127,17 @@ function Crystalline.timereversal_unitary(
 ) where D
     lg = group(lgir)
     kv = position(lg)
-    isnothing(g₀) && error(lazy"no operation maps the k-point of $(label(lgir)) to minus itself: time-reversal is not an element of its gray little group")
-    isapprox(g₀*kv, -kv, centering(lg)) || error(lazy"the provided operation g₀ = $(seitz(g₀)) does not map the k-point of $(label(lgir)) to minus itself")
+    if isnothing(g₀)
+        error(lazy"no operation maps the k-point of $(label(lgir)) to minus itself: time-reversal is not an element of its gray little group")
+    elseif !isapprox(g₀*kv, -kv, centering(lg))
+        error(lazy"the provided operation g₀ = $(seitz(g₀)) does not map the k-point of $(label(lgir)) to minus itself")
+    end
     if !Crystalline.iscorep(lgir)
         # the input must be an irrep that `realify` leaves alone (cf. `physical_realify`)
         r_untouched = isspinful(lgir) ? PSEUDOREAL : REAL
-        reality(lgir) == r_untouched || error(lazy"cannot find the unitary part of time-reversal for a $(reality(lgir)) irrep that is not already a corep: pass the input through `realify` first")
+        if reality(lgir) ≠ r_untouched
+            error(lazy"cannot find the unitary part of time-reversal for a $(reality(lgir)) irrep that is not already a corep: pass the input through `realify` first")
+        end
     end
 
     Xs = lgir(αβγ)                                       # D(g)
@@ -144,8 +149,9 @@ function Crystalline.timereversal_unitary(
 
     Γ = Crystalline.mapto_canonical_unitary(find_twisted_intertwiner(conj.(Xs), Ys, D_𝒯²g₀²))
     Γ*conj(Γ) ≈ D_𝒯²g₀² || error("Γ does not fulfil ΓΓ* = D((𝒯g₀)²)")
-    all(((X, Y),) -> Γ*conj(X)*Γ' ≈ Y, zip(Xs, Ys)) ||
+    if !all(((X, Y),) -> Γ*conj(X)*Γ' ≈ Y, zip(Xs, Ys))
         error("Γ does not map the conjugated matrices onto their g₀-conjugated counterparts")
+    end
 
     return Γ
 end
@@ -252,7 +258,9 @@ function find_twisted_intertwiner(
     # finally, to find a matrix U which obeys the above constraints, we solve for the
     # nullspace of `C` (note that `U` is not necessarily unitary at this point)
     Uv = nullspace(C, atol=1e-10)
-    size(Uv, 2) == 1 || error(lazy"failed to determine a unique intertwiner: nullspace dimension is $(size(Uv, 2)), not 1")
+    if size(Uv, 2) ≠ 1
+        error(lazy"failed to determine a unique intertwiner: nullspace dimension is $(size(Uv, 2)), not 1")
+    end
     return permutedims(reshape(Uv[:,1], N, N))
 end
 
