@@ -19,12 +19,12 @@ The coefficient vector 𝐝(𝐤) can be provided either in cartesian coordinate
 argument `cartesian`.
 
 ## Method
-The Chern number of the lowest band is proportional to the total solid angle under
+The Chern number of the lowest band is proportional to the total solid angle ``Ω`` under
 the manifold ``\\hat{\\mathbf{d}}(S^2)`` with ``S^2`` denoting the 2-sphere, which in turn
 is equal to the degree of the map ``\\hat{\\mathbf{d}}``, i.e.,
-``\\mathrm{deg}(\\hat{\\mathbf{d}})``, times 4π. 
+``\\mathrm{deg}(\\hat{\\mathbf{d}})``, times 4π.
 Put differently, the Chern number of the lowest band is
-``C_- = \\mathrm{deg}(\\hat{\\mathbf{d}})/4\\pi``.
+``C_- = Ω/4\\pi = \\mathrm{deg}(\\hat{\\mathbf{d}})``.
 
 This is computed numerically by discretizing the 2-sphere on an equidistant grid in polar
 and azimuthal angles, and constructing a simple triangular mesh from the cell-mesh.
@@ -99,8 +99,9 @@ function chern_2x2_hamiltonian(
         end
     end
     
-    # Chern number is (minus) the degree of hat_d(k) over the unit sphere, divided by 4π
-    C = Ω_total / (4π) # minus sign is for the lowest band
+    # Chern number of the lowest band: the solid angle under hat_d(k) over the unit sphere,
+    # divided by 4π (i.e., the degree of hat_d(k))
+    C = Ω_total / (4π)
     
     return C
 end
@@ -145,7 +146,7 @@ end
         kws...)                                         --> Float64
 
 Evaluate the topological charge, or Chern number, of the lowest band of a 2×2 Hamiltonian
-specified via a Hamiltonian expansion in `Hs`, evaluated at an set of expansion coefficients
+specified via a Hamiltonian expansion in `Hs`, evaluated at a set of expansion coefficients
 supplied in `qss`, with the coefficient in `qss[i][j]` applying to `i`th
 `MonomialHamiltonian` in `Hs` and its corresponding `j`th free term.
 
