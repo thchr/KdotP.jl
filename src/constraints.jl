@@ -1,5 +1,5 @@
 """
-    kdotp(lgir::LGIrrep,
+    kdotp(lgir::AbstractLGIrrep,
           αβγ=nothing;
           timereversal::Bool = true,
           degree::Union{Integer, Nothing} = nothing)  -->  Vector{MonomialHamiltonian}
@@ -8,9 +8,10 @@ Return a basis for the allowed **k**⋅**p** Hamiltonians of a small irrep `lgir
 degree in momentum.
 
 ## Input arguments
-- `lgir`: a small irrep of a little group, provided as an instance of the type `LGIrrep`.
-  Tables of `LGIrrep`s are accessible from the `lgirreps` function of Crystalline.jl
-  package.
+- `lgir`: a small irrep of a little group, provided as an instance of the type `LGIrrep`
+  (spinless) or `DLGIrrep` (spinful, i.e., a double-valued irrep of a double little group).
+  Tables of `LGIrrep`s and `DLGIrrep`s are accessible from the `lgirreps` function of
+  Crystalline.jl (the latter via the `spinful = Val(true)` keyword argument).
 - `αβγ`: if the little group associated with `lgir` has free parameters, i.e., if the
   **k**-point is parametrized by free parameters (α, β, γ), these parameters may be set
   via `αβγ = [α, β, γ]`. If `αβγ = nothing` (default), `lgir` is implicitly evaluated at
@@ -52,7 +53,7 @@ degree in momentum.
   `Hᴹ(k, qs)`.
 """
 function kdotp(
-            lgir::LGIrrep{D},
+            lgir::AbstractLGIrrep{D},
             αβγ=nothing; 
             timereversal::Bool=true,
             degree::Union{Nothing, Integer}=nothing) where D
@@ -74,7 +75,7 @@ function kdotp(
     return HamiltonianExpansion(lgir, Hᴹs, degree′)
 end
 
-function kdotp_at_fixed_degree(lgir::LGIrrep{D}, Γs, hs, M, timereversal, αβγ) where D
+function kdotp_at_fixed_degree(lgir::AbstractLGIrrep{D}, Γs, hs, M, timereversal, αβγ) where D
     bᴹ = MonomialBasis{D}(M)
     N, J = length(hs), length(bᴹ)
 
@@ -116,11 +117,7 @@ function kdotp_at_fixed_degree(lgir::LGIrrep{D}, Γs, hs, M, timereversal, αβ�
     M = !isempty(Mrows) ? stack(Mrows; dims=1) : zeros(eltype(M′), (0, size(M′, 2)))
     
     # solving nullspace (c = [c_11, …, c_N1, c_12, …, cN2, …, c_1J, …, c_NJ] = cₙᵈ)
-    # NB: we use a rather high absolute tolerance here because the determination of the 
-    #     antiunitary corep when `timereversal = true` is not very numerically precise; with 
-    #     too low a tolerance, we may accidentally exclude physical solution vectors; in
-    #     principle, this should be fixed by improving `find_antiunitary_corep`'s precision
-    _cs = nullspace(M, atol=1e-8)
+    _cs = nullspace(M, atol=ATOL_DEFAULT)
 
     # combine columns in `_cs` to get a representation with more zero terms, for ease of
     # interpretation
@@ -195,16 +192,16 @@ function assemble_matrices_littlegroup(lgir, Γs, hs, bᴹ)
     return A, γ2
 end
 
-function assemble_matrices_timereversal(lgir::LGIrrep{D}, hs, bᴹ, αβγ=nothing) where D
-    g₀ = kv_to_negative_kv_operation(lgir)
+function assemble_matrices_timereversal(lgir::AbstractLGIrrep{D}, hs, bᴹ, αβγ=nothing) where D
+    g₀ = minus_k_operation(lgir)
     isnothing(g₀) && return nothing
 
     # Find a corepresentation of 𝒯g₀ [Γ(𝒯g₀)K, with K denoting complex conjugation]
-    Γ𝒯g₀ = find_antiunitary_corep(lgir, g₀, αβγ)
+    Γ𝒯g₀ = timereversal_unitary(lgir, g₀, αβγ)
     
     return assemble_matrices_timereversal(Γ𝒯g₀, g₀, hs, bᴹ)
 end
-function assemble_matrices_timereversal(Γ𝒯g₀, g₀::SymOperation{D}, hs, bᴹ) where D
+function assemble_matrices_timereversal(Γ𝒯g₀, g₀::AbstractOperation{D}, hs, bᴹ) where D
     Γ𝒯g₀⁻¹ = inv(Γ𝒯g₀) # TODO: could just be Γ𝒯g₀†, right?
     # Next, formulate the constraint Γ(𝒯g₀)H*(k)Γ(𝒯g₀)⁻¹ = H(−g₀k) as the matrix equation
     # `A𝒯*c = γ2𝒯*c`. Note that Eq. (S59) of Bradlyn's (2016) Science paper also has
@@ -237,9 +234,7 @@ function assemble_matrices_timereversal(Γ𝒯g₀, g₀::SymOperation{D}, hs, b
     end
 
     γ2𝒯 = zeros(Float64, N*J, N*J)
-    ḡ₀ = SymOperation{D}(-one(Crystalline.SqSMatrix{D,Float64}),
-                          zero(SVector{D,Float64})) * g₀  # = -g₀
-    ℜ₀ = rotation_matrix_monomial(ḡ₀, bᴹ)
+    ℜ₀ = rotation_matrix_monomial(-rotation(g₀), bᴹ) # monomial rotation matrix of -g₀
     conj_prefs = [real(tr(h'*h)) for h in hs] # ⟨hₘ|hₘ⟩_F
     for i in 1:J
         for j in 1:J

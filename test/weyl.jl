@@ -1,4 +1,4 @@
-using Test, KdotP, Crystalline
+using Test, KdotP, Crystalline, LinearAlgebra
 
 @testset "Weyl points w/o SOC and w/ TR" begin
     # comparison with charge-1 Weyl points (C-1 WPs) of Table S1 and Section S7.C in 
@@ -54,4 +54,24 @@ using Test, KdotP, Crystalline
     # sets rather than in sequence.
     sort_labels(d) = Dict(sgnum => sort(irlabs) for (sgnum, irlabs) in d)
     @test sort_labels(weyl_irs_d) == sort_labels(weyl_irs_d_encyclopedia)
+end # @testset
+@testset "Kramers-Weyl points w/ SOC and w/ TR" begin
+    # Kramers-Weyl theorem (Chang et al., Nat. Mater. 17, 978 (2018)): in chiral space
+    # groups, every Kramers pair at a time-reversal invariant momentum is a Weyl point. We
+    # test this at Γ, except in trigonal & hexagonal groups (⋕143-194), where the jz = ±3/2
+    # Kramers pairs admit no linear in-plane terms and form higher-charge Weyl points.
+    # Conversely, inversion symmetry (with D(I) = ±𝟙 at Γ) forbids linear terms at Γ.
+    for sgnum in 1:230
+        sg = spacegroup(sgnum, Val(3))
+        chiral = all(op -> det(rotation(op)) > 0, sg)
+        centrosymmetric = any(op -> rotation(op) ≈ -I, sg)
+        (chiral && sgnum ∉ 143:194) || centrosymmetric || continue
+        for lgir in realify(lgirreps(sgnum, Val(3); spinful=Val(true))["Γ"])
+            if chiral
+                irdim(lgir) == 2 && @test KdotP.isweyl(lgir; timereversal=true)
+            else # centrosymmetric
+                @test degree(kdotp(lgir; timereversal=true)) ≥ 2
+            end
+        end
+    end
 end # @testset

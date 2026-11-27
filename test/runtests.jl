@@ -6,9 +6,9 @@ using LinearAlgebra
 # ---------------------------------------------------------------------------------------- #
 
 @testset "All irreps/coreps have a k⋅p model" begin
-    for D in 1:3
+    for spinful in (false, true), D in 1:3
         for sgnum in 1:MAX_SGNUM[D]
-            lgirsd = lgirreps(sgnum, Val(D))
+            lgirsd = lgirreps(sgnum, Val(D); spinful=Val(spinful))
             for timereversal in (false, true)
                 for (klab, lgirs) in lgirsd
                     timereversal && (lgirs = realify(lgirs))

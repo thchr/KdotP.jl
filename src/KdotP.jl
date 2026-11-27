@@ -2,9 +2,9 @@ module KdotP
 # ---------------------------------------------------------------------------------------- #
 
 using Crystalline, GellMannMatrices, LinearAlgebra, PrettyTables
+using Crystalline: AbstractOperation
 using RowEchelon: rref, rref!           # for `poormans_sparsification`
-using Optimization, OptimizationOptimJL # for `find_antiunitary_corep`
-using StaticArrays: SVector             # for `icosphere` & `assemble_matrices_timereversal`
+using StaticArrays: SVector             # for `icosphere`
 
 export kdotp, MonomialHamiltonian, Monomial, MonomialBasis, degree, chern_2x2_hamiltonian,
        chern
@@ -26,7 +26,7 @@ include("types.jl")
 include("show.jl")
 include("constraints.jl")
 include("compare.jl")
-include("timereversal.jl")
+include("lgirrep_timereversal.jl")
 include("transform.jl")
 include("chern_2x2.jl")
 include("chern_fukui.jl")
