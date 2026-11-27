@@ -94,7 +94,8 @@ translation phases in E). Instead, Γ is returned in the basis of the provided i
 """
     timereversal_unitary(lgir::AbstractLGIrrep,
                          g₀::AbstractOperation = minus_k_operation(lgir),
-                         αβγ = nothing)                         --> Matrix{ComplexF64}
+                         αβγ::Union{AbstractVector{<:Real}, Nothing} = nothing)
+                                                                --> Matrix{ComplexF64}
 
 Return the unitary part `Γ` of the antiunitary operation `𝒯g₀ = ΓK` of the gray little group
 of `lgir`, with `K` denoting complex conjugation, `𝒯` denoting time-reversal, and `g₀` an
@@ -120,43 +121,41 @@ whose `Reality` type requires no gluing (`REAL` for spinless irreps, `PSEUDOREAL
 spinful ones).
 """
 function Crystalline.timereversal_unitary(
-            lgir::AbstractLGIrrep,
-            g₀::Union{AbstractOperation, Nothing} = minus_k_operation(lgir),
-            αβγ = nothing
-)
+            lgir::AbstractLGIrrep{D},
+            g₀::Union{AbstractOperation{D}, Nothing} = minus_k_operation(lgir),
+            αβγ::Union{AbstractVector{<:Real}, Nothing} = nothing
+) where D
     lg = group(lgir)
     kv = position(lg)
-    if isnothing(g₀)
-        error("no operation maps the k-point of $(label(lgir)) to minus itself: \
-               time-reversal is not an element of its gray little group")
-    elseif !isapprox(g₀*kv, -kv, centering(lg))
-        error("the provided operation g₀ = $(seitz(g₀)) does not map the k-point of \
-               $(label(lgir)) to minus itself")
-    end
+    isnothing(g₀) && error(lazy"no operation maps the k-point of $(label(lgir)) to minus itself: time-reversal is not an element of its gray little group")
+    isapprox(g₀*kv, -kv, centering(lg)) || error(lazy"the provided operation g₀ = $(seitz(g₀)) does not map the k-point of $(label(lgir)) to minus itself")
     if !Crystalline.iscorep(lgir)
         # the input must be an irrep that `realify` leaves alone (cf. `physical_realify`)
         r_untouched = isspinful(lgir) ? PSEUDOREAL : REAL
-        if reality(lgir) ≠ r_untouched
-            error("cannot find the unitary part of time-reversal for a $(reality(lgir)) \
-                   irrep that is not already a corep: pass the input through `realify` \
-                   first")
-        end
+        reality(lgir) == r_untouched || error(lazy"cannot find the unitary part of time-reversal for a $(reality(lgir)) irrep that is not already a corep: pass the input through `realify` first")
     end
 
-    Xs = lgir(αβγ)                                    # D(g)
-    Ys = trs_transformed_irreps(Xs, lg, g₀, αβγ)      # D(g₀gg₀⁻¹)
-    E = irrep_matrix(compose(g₀, g₀, #=modτ=#false), Xs, lg, αβγ)
-    isspinful(lgir) && (E .*= -1)                     # E = D((𝒯g₀)²) = D(𝒯²g₀²)
+    Xs = lgir(αβγ)                                       # D(g)
+    Ys = trs_transformed_irreps(Xs, lg, g₀, αβγ)         # D(g₀gg₀⁻¹)
+    # (𝒯g₀)² = 𝒯²g₀², since 𝒯 commutes with g₀; here, 𝒯² is the identity for spinless
+    # irreps, but Ē (a 2π rotation) for spinful irreps (see `timereversal_squared`)
+    𝒯²g₀² = compose(timereversal_squared(g₀), compose(g₀, g₀, #=modτ=#false), #=modτ=#false)
+    D_𝒯²g₀² = irrep_matrix(𝒯²g₀², Xs, lg, αβγ)          # D((𝒯g₀)²) = D(𝒯²g₀²)
 
-    Γ = Crystalline.mapto_canonical_unitary(find_twisted_intertwiner(conj.(Xs), Ys, E))
-    if !(Γ*conj(Γ) ≈ E)
-        error("Γ does not fulfil ΓΓ* = D((𝒯g₀)²)")
-    end
-    if !all(((X, Y),) -> Γ*conj(X)*Γ' ≈ Y, zip(Xs, Ys))
+    Γ = Crystalline.mapto_canonical_unitary(find_twisted_intertwiner(conj.(Xs), Ys, D_𝒯²g₀²))
+    Γ*conj(Γ) ≈ D_𝒯²g₀² || error("Γ does not fulfil ΓΓ* = D((𝒯g₀)²)")
+    all(((X, Y),) -> Γ*conj(X)*Γ' ≈ Y, zip(Xs, Ys)) ||
         error("Γ does not map the conjugated matrices onto their g₀-conjugated counterparts")
-    end
 
     return Γ
+end
+
+# the operation 𝒯², for 𝒯 denoting time-reversal, as an operation of the same type as `op`:
+# the identity for spinless operations, and Ē (the barred identity, i.e., a 2π rotation,
+# represented by `-𝟙` in spinful irreps) for spinful operations
+timereversal_squared(::SymOperation{D}) where D = one(SymOperation{D})
+function timereversal_squared(::DSymOperation{D}) where D
+    return DSymOperation{D}(one(SymOperation{D}), -one(SU2))
 end
 
 """
@@ -193,22 +192,37 @@ minus_k_operation(lgir::AbstractLGIrrep) = minus_k_operation(group(lgir))
 # implementation. Errors if there is more than one choice of intertwiner, up to a scalar.
 # TODO: upstream as the `transpose_symmetry::AbstractMatrix` case of `find_intertwiner` in
 #       Crystalline (i.e., `transpose_symmetry::Union{Int, AbstractMatrix}`)
-function find_twisted_intertwiner(froms, tos, E::AbstractMatrix)
+function find_twisted_intertwiner(
+            froms::AbstractVector{<:AbstractMatrix},
+            tos::AbstractVector{<:AbstractMatrix},
+            E::AbstractMatrix
+)
     N = LinearAlgebra.checksquare(first(froms))
     M = length(froms)
-    if !all(X->LinearAlgebra.checksquare(X)==N, froms) ||
-       !all(Y->LinearAlgebra.checksquare(Y)==N, tos) || length(tos) ≠ M ||
-       LinearAlgebra.checksquare(E) ≠ N
+    if (!all(X->LinearAlgebra.checksquare(X)==N, froms) ||
+        !all(Y->LinearAlgebra.checksquare(Y)==N, tos) || length(tos) ≠ M ||
+        LinearAlgebra.checksquare(E) ≠ N)
         error("`froms`, `tos`, and `E` matrices are not square, or not of equal size & \
                number")
     end
 
+    # enforce that U*froms[i] - tos[i]*U = 0 ∀i; i.e., `∑ₖ Uᵢₖ froms[i]ₖⱼ - tos[i]ᵢₖ Uₖⱼ = 0`
+    # for the element `Uᵢⱼ`, which is the `(i-1)*N + j`th entry of the vectorized `U` (cf.
+    # the `permutedims(reshape(...))` below). As a matrix acting on the vectorized `U`, this
+    # is `𝟙 ⊗ froms[i]ᵀ - tos[i] ⊗ 𝟙`; but the Kronecker products with `𝟙` only place the
+    # elements of `froms[i]` and `tos[i]`, so we write them out (cf. the construction of `J`
+    # in Crystalline's `timereversal_unitary`)
+    # TODO: `Crystalline.find_intertwiner` builds these rows via generic `kron`s with `I(N)`;
+    #       it could adopt the explicit construction as well
     N² = N^2
     T = promote_type(eltype(first(froms)), eltype(first(tos)), eltype(E))
-    Q = Matrix{T}(undef, M*N², N²)
-    for i in 1:M
-        Q[(i-1)*N² .+ (1:N²), 1:N²] .= (kron(I(N), transpose(froms[i]))  .-  
-                                        kron(tos[i], I(N)))
+    Q = zeros(T, M*N², N²)
+    for (m, (X, Y)) in enumerate(zip(froms, tos)), i in 1:N, j in 1:N
+        r = (m-1)*N² + (i-1)*N + j # row of the (i,j) element of `U*X - Y*U`
+        for k in 1:N
+            Q[r, (i-1)*N + k] += X[k, j] # (U*X)ᵢⱼ = ∑ₖ Uᵢₖ Xₖⱼ
+            Q[r, (k-1)*N + j] -= Y[i, k] # (Y*U)ᵢⱼ = ∑ₖ Yᵢₖ Uₖⱼ
+        end
     end
 
     # remove zero-rows from Q for performance and numerical stability
@@ -238,10 +252,7 @@ function find_twisted_intertwiner(froms, tos, E::AbstractMatrix)
     # finally, to find a matrix U which obeys the above constraints, we solve for the
     # nullspace of `C` (note that `U` is not necessarily unitary at this point)
     Uv = nullspace(C, atol=1e-10)
-    if size(Uv, 2) ≠ 1
-        error("failed to determine a unique intertwiner: nullspace dimension different \
-               from 1")
-    end
+    size(Uv, 2) == 1 || error(lazy"failed to determine a unique intertwiner: nullspace dimension is $(size(Uv, 2)), not 1")
     return permutedims(reshape(Uv[:,1], N, N))
 end
 
@@ -249,7 +260,12 @@ end
 # `Zs[i]` = D(gᵢ)
 # NB: `realify(::AbstractVector{<:AbstractLGIrrep})` computes the analogous characters of
 #     g₋⁻¹gg₋ inline, when searching for complex partners
-function trs_transformed_irreps(Zs, lg, g₀, αβγ=nothing)
+function trs_transformed_irreps(
+            Zs::AbstractVector{<:AbstractMatrix},
+            lg::AbstractLittleGroup{D},
+            g₀::AbstractOperation{D},
+            αβγ::Union{AbstractVector{<:Real}, Nothing} = nothing
+) where D
     g₀⁻¹ = inv(g₀)
     return map(lg) do gᵢ
         g₀gᵢg₀⁻¹ = compose(g₀, compose(gᵢ, g₀⁻¹, #=modτ=#false), #=modτ=#false)
@@ -263,7 +279,12 @@ end
 #       `AbstractLGIrrep` at an operation `op` equivalent to one in its little group (the
 #       name `irrep_matrix` is internal only, and should not be transferred), and use it
 #       in `realify` and `calc_reality`, which repeat the `findequiv` + phase logic inline
-function irrep_matrix(op, Zs, lg, αβγ=nothing)
+function irrep_matrix(
+            op::AbstractOperation{D},
+            Zs::AbstractVector{<:AbstractMatrix},
+            lg::AbstractLittleGroup{D},
+            αβγ::Union{AbstractVector{<:Real}, Nothing} = nothing
+) where D
     idx, Δw = something(Crystalline.findequiv(op, operations(lg), centering(lg)))
     kv = position(lg)(αβγ)
     return Zs[idx] * cispi(2*dot(kv, Δw))

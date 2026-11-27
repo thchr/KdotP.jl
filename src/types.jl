@@ -87,6 +87,7 @@ irdim(Hs::HamiltonianExpansion) = irdim(Hs.lgir)
 function Crystalline.isspinful(::Type{<:HamiltonianExpansion{D, IR}}) where {D, IR}
     return isspinful(IR)
 end
+Crystalline.isspinful(Hs::HamiltonianExpansion) = isspinful(typeof(Hs))
 
 """
     degree(Hs::HamiltonianExpansion) --> Int
