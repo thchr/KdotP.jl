@@ -237,8 +237,8 @@ function assemble_matrices_timereversal(Γ𝒯g₀, g₀::SymOperation{D}, hs, b
     end
 
     γ2𝒯 = zeros(Float64, N*J, N*J)
-    ḡ₀ = SymOperation{D}(-one(Crystalline.SqSMatrix{D,Float64}), 
-                          zero(Crystalline.SVector{D,Float64})   ) * g₀  # = -g₀
+    ḡ₀ = SymOperation{D}(-one(Crystalline.SqSMatrix{D,Float64}),
+                          zero(SVector{D,Float64})) * g₀  # = -g₀
     ℜ₀ = rotation_matrix_monomial(ḡ₀, bᴹ)
     conj_prefs = [real(tr(h'*h)) for h in hs] # ⟨hₘ|hₘ⟩_F
     for i in 1:J

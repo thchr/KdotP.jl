@@ -1,9 +1,10 @@
 module KdotP
 # ---------------------------------------------------------------------------------------- #
 
-using Crystalline, GellMannMatrices, LinearAlgebra, PrettyTables, Unicode
+using Crystalline, GellMannMatrices, LinearAlgebra, PrettyTables
 using RowEchelon: rref, rref!           # for `poormans_sparsification`
 using Optimization, OptimizationOptimJL # for `find_antiunitary_corep`
+using StaticArrays: SVector             # for `assemble_matrices_timereversal`
 
 export kdotp, MonomialHamiltonian, Monomial, MonomialBasis, degree, chern_2x2_hamiltonian
 
