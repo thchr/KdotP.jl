@@ -12,5 +12,6 @@ Monomial
 MonomialBasis
 MonomialHamiltonian
 degree
+chern
 chern_2x2_hamiltonian
 ```
